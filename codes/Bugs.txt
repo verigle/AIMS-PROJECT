@@ -1,0 +1,14 @@
+1- Error of Cuda Memory
+Solution: run
+import os
+os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb:1024"
+
+AND WITHOUT RESTARTIN THE KERNEL run the following code. Run it before importing torch
+
+2- Patch max_split_size_mb
+
+The heigh(h) and the width(w) has to be  multiple of 2 and a mutiple of the patch size at the same time.
+
+we therefore add some padding p2d = (1,2, 1, 2), that we have to remove from the prediction array by sliccing
+
+examples: pred.surf_vars["2t"][0, 0].numpy()[6:-6,6:-6]

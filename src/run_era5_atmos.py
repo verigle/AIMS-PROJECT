@@ -1,0 +1,135 @@
+from utils import get_surface_feature_target_data, get_atmos_feature_target_data
+from utils import get_static_feature_target_data, create_batch, predict_fn, rmse_weights
+from utils import rmse_fn, plot_rmses
+
+
+import xarray as xr
+
+import gcsfs
+
+import os
+
+# Data
+fs = gcsfs.GCSFileSystem(token="anon")
+
+store = fs.get_mapper('gs://weatherbench2/datasets/era5/1959-2023_01_10-wb13-6h-1440x721_with_derived_variables.zarr')
+full_era5 = xr.open_zarr(store=store, consolidated=True, chunks=None)
+
+
+# select time range
+start_time = '2022-01-01'
+end_time = '2023-01-31'
+
+# world
+sliced_era5_world = (
+    full_era5
+    .sel(time=slice(start_time, end_time))
+)
+
+# South Africa
+
+
+lat_max = -22.00 
+lat_min = -37.75  
+
+lon_min = 15.25   
+lon_max = 35.00   
+
+sliced_era5_sa = (
+    full_era5
+    .sel(
+        time=slice(start_time, end_time),
+        latitude=slice(lat_max, lat_min),
+        longitude=slice(lon_min, lon_max)  
+    )
+)
+
+############Surface variables#################################
+atmos_levels_idx = [0, 6, 12]
+atmos_level_names = ["50hPa", "400hPa", "1000hPa"]
+atmos_vars_names=["t", "u", "v", "q", "z"]
+plots_titles = ["Temperature in K  two steps forward prediction: RMSES",
+                "Eastward wind speed two steps forward prediction: RMSES",
+                "Southward wind speed two steps forward prediction: RMSES",
+                "Specific humidity  two steps forward prediction: RMSES",
+                "Geopotential two steps forward prediction: RMSES"]
+
+selected_times=sliced_era5_world.time
+
+world_latitudes = sliced_era5_world.latitude
+world_longitudes = sliced_era5_world.longitude
+
+sa_latitudes = sliced_era5_sa.latitude
+sa_longitudes = sliced_era5_sa.longitude
+
+world_rmse_weights = rmse_weights(world_latitudes, world_longitudes)[1:,:]
+sa_rmse_weights = rmse_weights(sa_latitudes, sa_longitudes)
+
+################### Main part#################################################################################
+if __name__=="__main__":
+    for atmos_level_idx, atmos_level_name in zip(atmos_levels_idx, atmos_level_names):
+        
+        for var, title in zip(atmos_vars_names, plots_titles):
+
+            world_rmses_list=[]; pred_dates_list=[]
+            sa_rmses_list=[]
+            for i in range(1, len(sliced_era5_world.time)-2):
+                # get current and previous time step data
+                world_feature_data =  (
+                        sliced_era5_world
+                        .sel(time=slice(selected_times[i-1], selected_times[i]))
+                    )
+                sa_feature_data =  (
+                        sliced_era5_sa
+                        .sel(time=slice(selected_times[i-1], selected_times[i]))
+                    )
+                # get  the next to timz step data
+                world_target_data =  (
+                        sliced_era5_world
+                        .sel(time=slice(selected_times[i+1], selected_times[i+2]))
+                    )
+                sa_target_data =  (
+                        sliced_era5_sa
+                        .sel(time=slice(selected_times[i+1], selected_times[i+2]))
+                    )
+                
+                # get each type of data(surface, static atmosphere)
+                world_feature_surface_data, world_target_surface_data = get_surface_feature_target_data(world_feature_data, world_target_data)
+                world_feature_atmos_data, world_target_atmos_data = get_atmos_feature_target_data(world_feature_data, world_target_data)
+                world_feature_static_data, world_target_static_data = get_static_feature_target_data(world_feature_data, world_target_data)
+                
+                sa_feature_surface_data, sa_target_surface_data = get_surface_feature_target_data(sa_feature_data, sa_target_data)
+                sa_feature_atmos_data, sa_target_atmos_data = get_atmos_feature_target_data(sa_feature_data, sa_target_data)
+                sa_feature_static_data, sa_target_static_data = get_static_feature_target_data(sa_feature_data, sa_target_data)
+                
+                # create batch for each of them
+                world_feature_bacth =  create_batch(world_feature_surface_data, world_feature_atmos_data, world_feature_static_data)
+                world_target_bacth = create_batch(world_target_surface_data, world_target_atmos_data, world_target_static_data)
+                
+                sa_feature_bacth =  create_batch(sa_feature_surface_data, sa_feature_atmos_data, sa_feature_static_data)
+                sa_target_bacth = create_batch(sa_target_surface_data, sa_target_atmos_data, sa_target_static_data)
+                # get prediction
+                world_predictions = predict_fn(batch=world_feature_bacth)
+                sa_predictions = predict_fn(batch=sa_feature_bacth)
+                print("Prediction Done")
+                # compute the rmse
+                world_rmses, world_pred_dates = rmse_fn(predictions=world_predictions, 
+                        target_batch=world_target_bacth, var_name=var,atmos_level_idx=0,
+                        weigths=world_rmse_weights, var_type="atmosphere")
+                
+                sa_rmses, sa_pred_dates = rmse_fn(predictions=sa_predictions, 
+                        target_batch=sa_target_bacth, var_name=var, atmos_level_idx=atmos_level_idx,
+                        weigths=sa_rmse_weights, var_type="atmosphere", area="sa")
+                # append result to the list
+                world_rmses_list.append(world_rmses); pred_dates_list.append(world_pred_dates)
+                sa_rmses_list.append(sa_rmses)
+                print("RMSE DONE")
+                
+            plot_rmses(var, world_rmses_list, sa_rmses_list, 
+            figsize=(12, 8), fontsize=18,
+            date_ranges=pred_dates_list, 
+            title=title,
+            save_path="../report/era5",
+            atmos_level=atmos_level_name)
+            print("Plot Done")
+            

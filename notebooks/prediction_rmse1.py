@@ -26,29 +26,9 @@ from aurora import Batch, Metadata
 import os
 
 
-# In[2]:
+# In[ ]:
 
 
-import torch
-print(torch.cuda.is_available())  # Check if GPU is available
-print(torch.cuda.current_device())  # Check the current GPU device
-
-
-# In[3]:
-
-
-torch.cuda.empty_cache()
-
-
-# In[4]:
-
-
-torch.cuda.is_available()
-
-
-# # Load the model
-
-# In[5]:
 
 
 model = AuroraSmall()
@@ -60,7 +40,7 @@ model.load_state_dict(torch.load('../model/aurora.pth'))
 
 # ## World
 
-# In[6]:
+# In[7]:
 
 
 fs = gcsfs.GCSFileSystem(token="anon")
@@ -71,7 +51,7 @@ full_era5 = xr.open_zarr(store=store, consolidated=True, chunks=None)
 
 # ### Subset data from 2022
 
-# In[7]:
+# In[8]:
 
 
 start_time = '2022-06-01'
@@ -85,7 +65,7 @@ sliced_era5_world = (
 )
 
 
-# In[8]:
+# In[9]:
 
 
 target_sliced_era5_world = (
@@ -97,7 +77,7 @@ target_sliced_era5_world = (
 
 # ### Surface variables
 
-# In[9]:
+# In[10]:
 
 
 # List of surface variable names
@@ -110,7 +90,7 @@ target_surf_vars_ds = target_sliced_era5_world[surface_vars]
 
 # ### Atmospherique variables
 
-# In[10]:
+# In[11]:
 
 
 atmostpheric_variables = ["temperature", "u_component_of_wind", "v_component_of_wind", "specific_humidity", "geopotential"]
@@ -120,7 +100,7 @@ target_atmos_vars_ds = target_sliced_era5_world[atmostpheric_variables]
 
 # ## Static variables
 
-# In[11]:
+# In[12]:
 
 
 static_variables = ["land_sea_mask", "soil_type", "geopotential_at_surface"]
@@ -130,7 +110,7 @@ target_static_vars_ds = target_sliced_era5_world[static_variables]
 
 # ## Create batches
 
-# In[12]:
+# In[13]:
 
 
 class ERA5ZarrDataset(Dataset):
@@ -179,7 +159,7 @@ class ERA5ZarrDataset(Dataset):
         return Batch(surf_vars=surf_vars, static_vars=static_vars, atmos_vars=atmos_vars, metadata=metadata)
 
 
-# In[13]:
+# In[14]:
 
 
 world_batches = ERA5ZarrDataset(surf_vars_ds, atmos_vars_ds, static_vars_ds,1)
@@ -188,7 +168,7 @@ target_world_batches = ERA5ZarrDataset(target_surf_vars_ds, target_atmos_vars_ds
 
 # ### South Africa Data
 
-# In[14]:
+# In[15]:
 
 
 start_time = '2022-06-01'
@@ -221,7 +201,7 @@ target_sliced_era5_SA = (
 )
 
 
-# In[15]:
+# In[16]:
 
 
 surf_vars_ds_SA = sliced_era5_SA[surface_vars]
@@ -237,7 +217,7 @@ static_vars_ds_SA = sliced_era5_SA[static_variables]
 target_static_vars_ds_SA = target_sliced_era5_SA[static_variables]
 
 
-# In[16]:
+# In[17]:
 
 
 SA_batches = ERA5ZarrDataset(surf_vars_ds_SA, atmos_vars_ds_SA, static_vars_ds_SA,1)
@@ -246,16 +226,15 @@ target_SA_batches = ERA5ZarrDataset(target_surf_vars_ds_SA, target_atmos_vars_ds
 
 # ## Predictions Function
 
-# In[17]:
+# In[18]:
 
 
 def predict_fn(model, batch):
     model.eval()
     model = model.to("cuda")
-    batch = batch.to("cuda")
+    # batch = batch.to("cuda")
     with torch.inference_mode():
-        preds = [pred.to("cpu") for pred in rollout(model, batch, steps=2)]
-    model = model.to("cpu")
+        preds = [pred.to("cuda") for pred in rollout(model, batch, steps=2)]
     return preds
 
 
@@ -263,33 +242,46 @@ def predict_fn(model, batch):
 
 # ## Grid weights
 
-# In[18]:
+# In[19]:
 
 
-def rmse_weights(latitudes, longitudes, R=6371.0):
-    # convert to gradient
+def rmse_weights(latitudes, longitudes, R=6371.0, device="cuda"):
+    """
+    Compute area weights for RMSE calculation over a global grid.
+
+    Parameters:
+        latitudes (array-like): 1D array of latitudes (degrees).
+        longitudes (array-like): 1D array of longitudes (degrees).
+        R (float): Earth's radius in km (default: 6371.0).
+        device (str): 'cpu' or 'cuda' for GPU acceleration.
+
+    Returns:
+        torch.Tensor: Area weights normalized to sum to 1.
+    """
+    # Convert lat/lon to radians
     lat_rad = np.deg2rad(latitudes)
     lon_rad = np.deg2rad(longitudes)
-    
+
+    # Compute latitude and longitude differences
     dlat = np.abs(np.diff(lat_rad).mean())  # Average latitude difference
     dlon = np.abs(np.diff(lon_rad).mean())  # Average longitude difference
 
-    # Calculate the area for each latitude band
-    areas = R**2 * dlon * np.abs(np.sin(lat_rad + dlat/2) - np.sin(lat_rad - dlat/2))
+    # Calculate area weights
+    areas = R**2 * dlon * np.abs(np.sin(lat_rad + dlat / 2) - np.sin(lat_rad - dlat / 2))
 
-    # Expand areas to match the shape of the grid
+    # Expand areas to create a 2D area weight grid
     area_grid = np.outer(areas, np.ones(len(longitudes)))
-    area_grid = area_grid/area_grid.sum()
-    
-    
-    return area_grid
-    
 
+    # Normalize the area weights
+    area_grid /= area_grid.sum()
+
+    # Convert to PyTorch tensor
+    return torch.tensor(area_grid, dtype=torch.float32, device=device)
 
 
 # ### world rmse weights
 
-# In[19]:
+# In[20]:
 
 
 world_rmse_weights = rmse_weights(sliced_era5_world.latitude, sliced_era5_world.longitude, R=6371.0)
@@ -297,22 +289,39 @@ world_rmse_weights = rmse_weights(sliced_era5_world.latitude, sliced_era5_world.
 
 # ### South Africa rmse weights
 
-# In[20]:
+# In[21]:
 
 
 SA_rmse_weights = rmse_weights(sliced_era5_SA.latitude, sliced_era5_SA.longitude, R=6371.0)
 
 
-# In[21]:
+# In[22]:
 
 
-def custom_rmse(actual, prediction, weigths):
-    return (((actual-prediction)**2)*weigths).sum()
+def custom_rmse(actual, prediction, weights):
+    """
+    Compute the weighted RMSE (Root Mean Square Error).
+
+    Parameters:
+        actual (torch.Tensor): Ground truth values.
+        prediction (torch.Tensor): Predicted values.
+        weights (torch.Tensor): Area weights (normalized).
+
+    Returns:
+        torch.Tensor: Weighted RMSE.
+    """
+
+
+    # Compute weighted squared error
+    squared_error = ((actual - prediction) ** 2) * weights
+
+    # Compute and return the sum of the squared errors (RMSE without sqrt)
+    return torch.sqrt(squared_error.sum() / weights.sum())
 
 
 # # RMSEs World dataset
 
-# In[22]:
+# In[23]:
 
 
 def rmse_fn(model, feature_batch, target_batch, var_name, weigths=world_rmse_weights, var_type="surface", atmos_level_idx=0):
@@ -331,6 +340,7 @@ def rmse_fn(model, feature_batch, target_batch, var_name, weigths=world_rmse_wei
             # print(rmse1)
             two_steps_rmse.append(rmse_.item())
             pred_dates.append(pred.metadata.time[0])
+            print("done")
         # Atmospherique variable
         elif var_type=="atmosphere":
             prediction = pred.atmos_vars[var_name].squeeze()[atmos_level_idx,:,:].numpy().squeeze()
@@ -345,7 +355,7 @@ def rmse_fn(model, feature_batch, target_batch, var_name, weigths=world_rmse_wei
 
 # # RMSEs South Africa dataset
 
-# In[23]:
+# In[24]:
 
 
 def rmse_fn_sa(model, actual_batch, target_batch, var_name, weigths=SA_rmse_weights, var_type="surface",  atmos_level_idx=0):
@@ -377,7 +387,7 @@ def rmse_fn_sa(model, actual_batch, target_batch, var_name, weigths=SA_rmse_weig
 
 # # PLot RMSES
 
-# In[24]:
+# In[25]:
 
 
 def plot_rmses(variable, rmses_world, rmses_sa, 
@@ -437,7 +447,44 @@ def plot_rmses(variable, rmses_world, rmses_sa,
 
 # ## Two-meter temperature in K: 2t
 
-# In[ ]:
+# In[28]:
+
+
+from torch.utils.data import DataLoader
+import gc
+
+
+# In[29]:
+
+
+batch_size = 1  # Set a reasonable batch size for memory efficiency
+
+world_loader = DataLoader(world_batches, batch_size=batch_size, shuffle=False)
+target_loader = DataLoader(target_world_batches, batch_size=batch_size, shuffle=False)
+
+
+# In[30]:
+
+
+print("Starting for the world")
+rmses_world_2t = []
+dates_world_2t = []
+
+for feature_batch, target_batch in zip(world_loader, target_loader):
+    feature_batch = feature_batch.to("cuda")
+    target_batch = target_batch.to("cuda")
+
+    rmse, date = rmse_fn(model, feature_batch=feature_batch, target_batch=target_batch, var_name="2t", var_type="surface")
+    rmses_world_2t.append(rmse)
+    dates_world_2t.append(date)
+
+    # Free memory
+    del feature_batch, target_batch, rmse, date
+    torch.cuda.empty_cache()
+    gc.collect()
+
+print("done")
+# In[28]:
 
 
 rmses_world_2t = []

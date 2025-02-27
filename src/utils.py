@@ -56,6 +56,7 @@ def get_static_feature_target_data(feature_sliced_data, target_sliced_data,
 
 
 def create_batch(surf_vars_ds, atmos_vars_ds, static_vars_ds, i=1):
+
     surf_vars = {
         "2t": torch.from_numpy(surf_vars_ds["2m_temperature"].values[[i - 1, i]][None]),
         "10u": torch.from_numpy(surf_vars_ds["10m_u_component_of_wind"].values[[i - 1, i]][None]),
@@ -121,7 +122,6 @@ def rmse_weights(latitudes, longitudes,
     # Convert lat/lon to radians
     lat_rad = np.deg2rad(latitudes)
     lon_rad = np.deg2rad(longitudes)
-
     # Compute latitude and longitude differences
     dlat = np.abs(np.diff(lat_rad).mean())  # Average latitude difference
     dlon = np.abs(np.diff(lon_rad).mean())  # Average longitude difference
@@ -139,7 +139,7 @@ def rmse_weights(latitudes, longitudes,
 
 
 def custom_rmse(actual, prediction, 
-                weights, type="mean"):
+                weights, type="sum"):
     """
     Compute the weighted RMSE (Root Mean Square Error).
 
@@ -161,7 +161,7 @@ def custom_rmse(actual, prediction,
         squared_error = ((actual - prediction) ** 2) * weights
         rmse = torch.sqrt(squared_error.sum()/weights.sum())
     else:
-        squared_error = ((actual - prediction) ** 2).mean() 
+        squared_error = ((actual - prediction) ** 2*weights).mean() 
         rmse = torch.sqrt(squared_error/weights.mean())
 
     # Compute and return the sum of the squared errors (RMSE without sqrt)
@@ -228,10 +228,10 @@ def plot_rmses(variable, rmses_world, rmses_sa,
     tick_positions = np.linspace(0, len(formatted_dates_6_hours) - 1, num_ticks, dtype=int)
 
     # Plot RMSEs with improved colors and styles
-    ax.plot(x_indices, np.array(rmses_world)[:, 0], label="Global RMSE (6h Forecast)", color="blue", linestyle="-", linewidth=2)
-    ax.plot(x_indices, np.array(rmses_sa)[:, 0], label="South Africa RMSE (6h Forecast)", color="orange", linestyle="-", linewidth=2)
-    ax.plot(x_indices, np.array(rmses_world)[:, 1], label="Global RMSE (12h Forecast)", color="blue", linestyle="--", linewidth=2)
-    ax.plot(x_indices, np.array(rmses_sa)[:, 1], label="South Africa RMSE (12h Forecast)", color="orange", linestyle="--", linewidth=2)
+    ax.plot(x_indices, np.array(rmses_world)[:, 0], label="Global RMSE (6h Forecast)", color="blue", linestyle="-", linewidth=1)
+    ax.plot(x_indices, np.array(rmses_sa)[:, 0], label="South Africa RMSE (6h Forecast)", color="orange", linestyle="-", linewidth=1)
+    ax.plot(x_indices, np.array(rmses_world)[:, 1], label="Global RMSE (12h Forecast)", color="blue", linestyle="--", linewidth=1)
+    ax.plot(x_indices, np.array(rmses_sa)[:, 1], label="South Africa RMSE (12h Forecast)", color="orange", linestyle="--", linewidth=1)
 
     # Set selected x-ticks
     ax.set_xticks(tick_positions)
@@ -256,3 +256,56 @@ def plot_rmses(variable, rmses_world, rmses_sa,
         plt.savefig(f"{save_path}/rmse-{variable}.svg", bbox_inches="tight")
 
     plt.show()
+
+
+
+###################################### HRES T0 part##########################################
+
+
+def _prepare(x: np.ndarray, i = 1) -> torch.Tensor:
+    """Prepare a variable.
+
+    This does the following things:
+    * Select time indices `i` and `i - 1`.
+    * Insert an empty batch dimension with `[None]`.
+    * Flip along the latitude axis to ensure that the latitudes are decreasing.
+    * Copy the data, because the data must be contiguous when converting to PyTorch.
+    * Convert to PyTorch.
+    """
+    return torch.from_numpy(x[[i - 1, i]][None][..., ::-1, :].copy())
+
+def create_hrest0_batch(surf_vars_ds, atmos_vars_ds, static_vars_ds, i=1):
+    batch = Batch(
+    surf_vars={
+        "2t": _prepare(surf_vars_ds["2m_temperature"].values, i),
+        "10u": _prepare(surf_vars_ds["10m_u_component_of_wind"].values, i),
+        "10v": _prepare(surf_vars_ds["10m_v_component_of_wind"].values, i),
+        "msl": _prepare(surf_vars_ds["mean_sea_level_pressure"].values, i),
+    },
+    static_vars = {
+            "z": torch.from_numpy(static_vars_ds["geopotential_at_surface"].values),
+            "slt": torch.from_numpy(static_vars_ds["soil_type"].values),
+            "lsm": torch.from_numpy(static_vars_ds["land_sea_mask"].values),
+        },
+    atmos_vars={
+        "t": _prepare(atmos_vars_ds["temperature"].values,i),
+        "u": _prepare(atmos_vars_ds["u_component_of_wind"].values, i),
+        "v": _prepare(atmos_vars_ds["v_component_of_wind"].values, i),
+        "q": _prepare(atmos_vars_ds["specific_humidity"].values, i),
+        "z": _prepare(atmos_vars_ds["geopotential"].values, i),
+    },
+    metadata=Metadata(
+        # Flip the latitudes! We need to copy because converting to PyTorch, because the
+        # data must be contiguous.
+        lat=torch.from_numpy(surf_vars_ds.latitude.values[::-1].copy()),
+        lon=torch.from_numpy(surf_vars_ds.longitude.values),
+        # Converting to `datetime64[s]` ensures that the output of `tolist()` gives
+        # `datetime.datetime`s. Note that this needs to be a tuple of length one:
+        # one value for every batch element.
+        time=(surf_vars_ds.time.values.astype("datetime64[s]").tolist()[i],),
+        atmos_levels=tuple(int(level) for level in atmos_vars_ds.level.values),
+    ),
+)
+
+    return batch
+    

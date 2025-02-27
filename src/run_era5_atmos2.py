@@ -12,7 +12,7 @@ store = fs.get_mapper('gs://weatherbench2/datasets/era5/1959-2023_01_10-wb13-6h-
 full_era5 = xr.open_zarr(store=store, consolidated=True, chunks=None)
 
 # Select time range
-start_time, end_time = '2022-10-01', '2023-01-31'
+start_time, end_time = '2022-12-01', '2023-01-31'
 
 # World Data
 sliced_era5_world = full_era5.sel(time=slice(start_time, end_time))

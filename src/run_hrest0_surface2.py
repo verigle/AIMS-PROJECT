@@ -23,7 +23,7 @@ end_time = '2022-12-31'
 # World and South Africa data slicing
 sliced_hrest0_world = full_hrest0.sel(time=slice(start_time, end_time))
 sliced_hrest0_sa = full_hrest0.sel(time=slice(start_time, end_time), 
-                                   latitude=slice(-22.00, -37.75), 
+                                   latitude=slice(-37.75, -22.00), 
                                    longitude=slice(15.25, 35.00))
 
 sliced_era5_world = full_era5.sel(time=slice(start_time, end_time))

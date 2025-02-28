@@ -17,7 +17,7 @@ store_era5 = fs.get_mapper('gs://weatherbench2/datasets/era5/1959-2023_01_10-wb1
 full_era5 = xr.open_zarr(store=store_era5, consolidated=True, chunks=None)
 
 # Select time range
-start_time = '2022-12-01'
+start_time = '2022-11-01'
 end_time = '2022-12-31'
 
 # World and South Africa data slicing
@@ -47,12 +47,14 @@ selected_times = sliced_hrest0_world.time
 world_rmse_weights = rmse_weights(sliced_hrest0_world.latitude, sliced_hrest0_world.longitude)[1:, :]
 sa_rmse_weights = rmse_weights(sliced_era5_sa.latitude, sliced_hrest0_sa.longitude)
 
+# Initialize result lists for this iteration
+world_rmses_list = {var: [] for var in surface_vars_names}
+sa_rmses_list = {var: [] for var in surface_vars_names}
+pred_dates_list = []
 ################### Main Loop ###################
+
 for i in range(len(selected_times) - 3):
-    # Initialize result lists for this iteration
-    world_rmses_list = {var: [] for var in surface_vars_names}
-    sa_rmses_list = {var: [] for var in surface_vars_names}
-    pred_dates_list = {var: [] for var in surface_vars_names}
+    
     
     # Get feature and target data for this timestep
     world_feature_hrest0_data = sliced_hrest0_world.sel(time=slice(selected_times[i], selected_times[i+1]))
@@ -85,25 +87,41 @@ for i in range(len(selected_times) - 3):
     sa_predictions = predict_fn(batch=sa_feature_batch)
     
     # Compute RMSE for all surface variables at once
+    # for var in surface_vars_names:
+    #     world_rmses, world_pred_dates = rmse_fn(
+    #         predictions=world_predictions, 
+    #         target_batch=world_target_batch, 
+    #         var_name=var, 
+    #         weigths=world_rmse_weights
+    #     )
+    #     print( world_pred_dates)
+    #     sa_rmses, sa_pred_dates = rmse_fn(
+    #         predictions=sa_predictions, 
+    #         target_batch=sa_target_batch, 
+    #         var_name=var, 
+    #         weigths=sa_rmse_weights, 
+    #         area="sa"
+    #     )
+        
+    #     # Append the results for this variable
+    #     world_rmses_list[var].append(world_rmses)
+    #     sa_rmses_list[var].append(sa_rmses)
+    #     pred_dates_list[var].append(world_pred_dates)
+        
     for var in surface_vars_names:
         world_rmses, world_pred_dates = rmse_fn(
-            predictions=world_predictions, 
-            target_batch=world_target_batch, 
-            var_name=var, 
-            weigths=world_rmse_weights
+            predictions=world_predictions, target_batch=world_target_batch,
+            var_name=var, weigths=world_rmse_weights
         )
-        sa_rmses, sa_pred_dates = rmse_fn(
-            predictions=sa_predictions, 
-            target_batch=sa_target_batch, 
-            var_name=var, 
-            weigths=sa_rmse_weights, 
-            area="sa"
+        sa_rmses, _ = rmse_fn(
+            predictions=sa_predictions, target_batch=sa_target_batch,
+            var_name=var, weigths=sa_rmse_weights, area="sa"
         )
-        
-        # Append the results for this variable
+
         world_rmses_list[var].append(world_rmses)
         sa_rmses_list[var].append(sa_rmses)
-        pred_dates_list[var].append(world_pred_dates)
+
+    pred_dates_list.append(world_pred_dates)
     
     if (i+1) % 10 == 0:
         print(f"Iterations {i+1}")
@@ -116,7 +134,7 @@ for var, title in zip(surface_vars_names, plots_titles):
         sa_rmses_list[var], 
         figsize=(12, 8), 
         fontsize=18, 
-        date_ranges=pred_dates_list[var], 
+        date_ranges=pred_dates_list, 
         title=title, 
         save_path="../report/hrest0", 
         atmos_level=None

@@ -33,13 +33,6 @@ sliced_era5_sa = full_era5.sel(time=slice(start_time, end_time),
 
 # Constants
 STATIC_VARIABLES = ["land_sea_mask", "soil_type", "geopotential_at_surface"]
-surface_vars_names = ["2t", "10u", "10v", "msl"]
-plots_titles = [
-    "Two-meter temperature two steps forward prediction: RMSES",
-    "Ten-meter eastward wind speed two steps forward prediction: RMSES",
-    "Ten-meter southward wind speed two steps forward prediction: RMSES",
-    "Mean sea-level pressure two steps forward prediction: RMSES"
-]
 
 selected_times = sliced_hrest0_world.time
 

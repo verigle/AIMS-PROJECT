@@ -17,7 +17,7 @@ store_era5 = fs.get_mapper('gs://weatherbench2/datasets/era5/1959-2023_01_10-wb1
 full_era5 = xr.open_zarr(store=store_era5, consolidated=True, chunks=None)
 
 # Time Range Selection
-start_time = '2022-06-01'
+start_time = '2022-11-01'
 end_time = '2022-12-31'
 
 # Data slicing for World and South Africa regions
@@ -33,13 +33,6 @@ sliced_era5_sa = full_era5.sel(time=slice(start_time, end_time),
 
 # Constants
 STATIC_VARIABLES = ["land_sea_mask", "soil_type", "geopotential_at_surface"]
-surface_vars_names = ["2t", "10u", "10v", "msl"]
-plots_titles = [
-    "Two-meter temperature two steps forward prediction: RMSES",
-    "Ten-meter eastward wind speed two steps forward prediction: RMSES",
-    "Ten-meter southward wind speed two steps forward prediction: RMSES",
-    "Mean sea-level pressure two steps forward prediction: RMSES"
-]
 
 selected_times = sliced_hrest0_world.time
 
@@ -48,8 +41,8 @@ world_rmse_weights = rmse_weights(sliced_hrest0_world.latitude, sliced_hrest0_wo
 sa_rmse_weights = rmse_weights(sliced_era5_sa.latitude, sliced_hrest0_sa.longitude)
 
 # Atmospheric levels and variables to evaluate
-atmos_levels_idx = [0, 6, 12]
-atmos_level_names = ["50hPa", "400hPa", "1000hPa"]
+atmos_levels_idx = [6, 12]
+atmos_level_names = ["400hPa", "1000hPa"]
 atmos_vars_names = ["t", "u", "v", "q", "z"]
 plots_titles = [
     "Temperature in K two steps forward prediction: RMSES",

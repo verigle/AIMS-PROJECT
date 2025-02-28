@@ -27,8 +27,8 @@ sliced_era5_sa = full_era5.sel(
 )
 
 # Atmospheric variables and levels
-atmos_levels_idx = [0, 6, 12]
-atmos_level_names = ["50hPa", "400hPa", "1000hPa"]
+atmos_levels_idx = [6, 12]
+atmos_level_names = ["400hPa", "1000hPa"]
 atmos_vars_names = ["t", "u", "v", "q", "z"]
 plots_titles = [
     "Temperature in K two steps forward prediction: RMSES",
@@ -109,7 +109,7 @@ for atmos_level_idx, atmos_level_name in zip(atmos_levels_idx, atmos_level_names
             # Append results for the current variable and atmospheric level
             world_rmses_list[var].append(world_rmses)
             sa_rmses_list[var].append(sa_rmses)
-            pred_dates_list[var].append(world_pred_dates)
+        pred_dates_list[var].append(world_pred_dates)
 
         # Print progress
         if iterations % 10 == 0:

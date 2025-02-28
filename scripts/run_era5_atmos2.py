@@ -1,10 +1,13 @@
+import os
+import sys
+sys.path.append(os.path.abspath("../src"))
 from utils import get_surface_feature_target_data, get_atmos_feature_target_data
 from utils import get_static_feature_target_data, create_batch, predict_fn, rmse_weights
 from utils import rmse_fn, plot_rmses
 
 import xarray as xr
 import gcsfs
-import os
+
 
 # Data
 fs = gcsfs.GCSFileSystem(token="anon")

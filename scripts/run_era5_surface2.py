@@ -90,6 +90,7 @@ for i in range(len(sliced_era5_world.time) - 3):
             predictions=world_predictions, target_batch=world_target_batch,
             var_name=var, weigths=world_rmse_weights
         )
+       
         sa_rmses, _ = rmse_fn(
             predictions=sa_predictions, target_batch=sa_target_batch,
             var_name=var, weigths=sa_rmse_weights, area="sa"

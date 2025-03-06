@@ -3,7 +3,7 @@ import sys
 sys.path.append(os.path.abspath("../src"))
 from utils import get_surface_feature_target_data, get_atmos_feature_target_data
 from utils import get_static_feature_target_data, create_batch, predict_fn, rmse_weights
-from utils import rmse_fn, plot_rmses
+from utils import rmse_fn, plot_rmses, create_hrest0_batch
 
 import xarray as xr
 import gcsfs
@@ -44,6 +44,7 @@ plots_titles = [
 ]
 
 selected_times = sliced_hrest0_world.time
+print(selected_times)
 
 # Compute RMSE weights once
 world_rmse_weights = rmse_weights(sliced_hrest0_world.latitude, sliced_hrest0_world.longitude)[1:, :]
@@ -119,6 +120,8 @@ for i in range(len(selected_times) - 3):
             predictions=sa_predictions, target_batch=sa_target_batch,
             var_name=var, weigths=sa_rmse_weights, area="sa"
         )
+        print(world_rmses)
+        print(world_pred_dates)
 
         world_rmses_list[var].append(world_rmses)
         sa_rmses_list[var].append(sa_rmses)

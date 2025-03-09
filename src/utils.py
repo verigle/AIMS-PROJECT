@@ -16,7 +16,9 @@ import gcsfs
 from torch.utils.data import Dataset
 from aurora import Batch, Metadata
 import os
-
+from functools import partial
+from lora import LinearWithLoRA
+from lora import create_custom_model
 
 # Variables
 ERA5_SURFACE_VARIABLES = ['2m_temperature', '10m_u_component_of_wind', '10m_v_component_of_wind', 'mean_sea_level_pressure']
@@ -87,11 +89,19 @@ def create_batch(surf_vars_ds, atmos_vars_ds, static_vars_ds, i=1):
 
 
     return Batch(surf_vars=surf_vars, static_vars=static_vars, atmos_vars=atmos_vars, metadata=metadata)
-
+####################################################################################################################""
 # model
-model = AuroraSmall()
+# model = AuroraSmall()
+model = AuroraSmall(
+    use_lora=False,  # Model was not fine-tuned.
+    autocast=True,  # Use AMP.
+)
+model = create_custom_model(model, lora_r = 8, lora_alpha = 16)
 
-model.load_state_dict(torch.load('../model/aurora.pth'))
+# model.load_state_dict(torch.load('../model/aurora.pth'))
+model.load_state_dict(torch.load('../model/best_models/best_model.pth'))
+####################################################################################################################""
+
 
 def predict_fn(model=model, batch=None):
     model.eval()

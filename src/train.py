@@ -27,6 +27,22 @@ from utils import (
     get_static_feature_target_data,
     create_batch
 )
+import logging
+import sys
+
+# Configure logging
+log_file = "trainings.log"
+logging.basicConfig(
+    level=logging.INFO,  # Set logging level to INFO
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    handlers=[
+        logging.FileHandler(log_file),  # Log to file
+        logging.StreamHandler(sys.stdout)  # Log to console as well
+    ]
+)
+
+logger = logging.getLogger(__name__)
+
 
 def training(model, criterion, num_epochs,
              optimizer, dataset=None, dataset_name="ERA5", 
@@ -83,9 +99,12 @@ def training(model, criterion, num_epochs,
                 'optimizer_state_dict': optimizer.state_dict(),
                 'loss': epoch_loss,
             }, checkpoint_path)
-            print(f'Checkpoint saved: {checkpoint_path}')
+            logger.info(f'Checkpoint saved: {checkpoint_path}')
 
-        print(f'Epoch [{epoch+1}/{num_epochs}], Loss: {epoch_loss:.4f}')
+        logger.info(f'Epoch [{epoch+1}/{num_epochs}], Loss: {epoch_loss:.4f}')
+
+
+        # print(f'Epoch [{epoch+1}/{num_epochs}], Loss: {epoch_loss:.4f}')
 
     return model, loss_list
 

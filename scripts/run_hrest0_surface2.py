@@ -44,7 +44,7 @@ plots_titles = [
 ]
 
 selected_times = sliced_hrest0_world.time
-print(selected_times)
+# print(selected_times)
 
 # Compute RMSE weights once
 world_rmse_weights = rmse_weights(sliced_hrest0_world.latitude, sliced_hrest0_world.longitude)[1:, :]

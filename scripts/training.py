@@ -153,8 +153,8 @@ full_era5 = xr.open_zarr(store=store, consolidated=True, chunks=None)
 # In[14]:
 
 
-start_time, end_time = '2022-10-01', '2023-01-31'
-
+# start_time, end_time = '2022-11-01', '2023-01-31'
+start_time, end_time = '2022-12-01', '2023-01-31'
 
 # In[15]:
 
@@ -173,11 +173,6 @@ sliced_era5_SA = (
     )
 )
 
-
-
-# # Trainig
-
-# In[16]:
 
 
 from train import training

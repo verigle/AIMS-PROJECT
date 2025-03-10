@@ -154,8 +154,8 @@ full_era5 = xr.open_zarr(store=store, consolidated=True, chunks=None)
 
 
 # start_time, end_time = '2022-11-01', '2023-01-31'
-start_time, end_time = '2022-12-01', '2023-01-31'
-
+# start_time, end_time = '2022-12-01', '2023-01-31'
+start_time, end_time = '2023-01-08', '2023-01-31'
 # In[15]:
 
 
@@ -200,7 +200,7 @@ criterion = AuroraLoss()
 # In[ ]:
 
 
-model,  rmses = training(model=model, criterion=criterion,
+model,  maps = training(model=model, criterion=criterion,
              num_epochs=20, optimizer=optimizer,
              dataset= sliced_era5_SA,
              dataset_name="ERA5", 
@@ -212,7 +212,7 @@ torch.save(model.state_dict(), "../model/best_models/best_model.pth")
 save_path  = "../report/training"
 _, ax = plt.subplots(figsize=(8, 6), dpi=300)
 
-ax.plot(np.arange(1,len(rmses)+1), rmses)
+ax.plot(np.arange(1,len(maps)+1), maps)
 ax.set_ylabel("Mean Absolute Error (MAP)")
 ax.set_xlabel("Epoch")
 plt.savefig(f"{save_path}/map-learning-curve.pdf", bbox_inches="tight")

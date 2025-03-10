@@ -57,7 +57,7 @@ def get_static_feature_target_data(feature_sliced_data, target_sliced_data,
 
 
 
-def create_batch(surf_vars_ds, atmos_vars_ds, static_vars_ds, i=1):
+def create_batch(surf_vars_ds, atmos_vars_ds, static_vars_ds, i=1, target=True):
 
     surf_vars = {
         "2t": torch.from_numpy(surf_vars_ds["2m_temperature"].values[[i - 1, i]][None]),
@@ -103,14 +103,18 @@ model.load_state_dict(torch.load('../model/best_models/best_model.pth'))
 ####################################################################################################################""
 
 
-def predict_fn(model=model, batch=None):
+def predict_fn(model=model, batch=None, rollout_nums=8):
     model.eval()
     model = model.to("cuda")
     # batch = batch.to("cuda")
     with torch.inference_mode():
-        preds = [pred for pred in rollout(model, batch, steps=2)]
+        preds = [pred for pred in rollout(model, batch, steps=rollout_nums)]
     return preds
 
+def predict_train_fn(model=model, batch=None, rollout_nums=8):
+    model = model.to("cuda")
+    preds = [pred for pred in rollout(model, batch, steps=rollout_nums)]
+    return preds
 
 
 # get weight for RMSE

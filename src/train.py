@@ -15,8 +15,7 @@ from loss import AuroraLoss
 
 from utils import get_surface_feature_target_data, get_atmos_feature_target_data
 from utils import get_static_feature_target_data, create_batch, predict_fn, rmse_weights
-from utils import rmse_fn, plot_rmses
-
+from utils import rmse_fn, plot_rmses, predict_train_fn
 
 
 import os
@@ -47,6 +46,7 @@ logger = logging.getLogger(__name__)
 def training(model, criterion, num_epochs,
              optimizer, dataset=None, dataset_name="ERA5", 
              accumulation_steps=8,
+             rollouts_num=8,
              checkpoint_dir='../model/checkpoints'):
     selected_times = dataset.time
     loss_list = []
@@ -57,10 +57,11 @@ def training(model, criterion, num_epochs,
         model.train()
         optimizer.zero_grad()  # Initialize gradients
         running_loss = 0
-        for i in range(0, len(selected_times) - 3):
+        for i in range(0, len(selected_times) - rollouts_num-1):
             # Retrieve data for current and next time steps
             sa_feature_data = dataset.sel(time=slice(selected_times[i], selected_times[i+1]))
-            sa_target_data = dataset.sel(time=slice(selected_times[i+2], selected_times[i+3]))
+            sa_target_data = dataset.sel(time=slice(selected_times[i + rollouts_num], selected_times[i + rollouts_num + 1]))
+            # sa_target_data = dataset.sel(time=selected_times[i + rollouts_num + 1])
 
             # Extract feature and target data
             sa_feature_surface_data, sa_target_surface_data = get_surface_feature_target_data(sa_feature_data, sa_target_data)
@@ -72,8 +73,11 @@ def training(model, criterion, num_epochs,
             target_batch = create_batch(sa_target_surface_data, sa_target_atmos_data, sa_target_static_data)
 
             # Forward pass
-            outputs = model(input_batch)
-            loss = criterion(outputs, target_batch, dataset_name) / accumulation_steps  # Normalize loss
+            outputs = predict_train_fn(model=model, batch=input_batch)
+            prediction_48h = outputs[-1]
+            # output = model(input_batch)
+            loss = criterion(prediction_48h, target_batch, dataset_name) / accumulation_steps  # Normalize loss
+            print(loss.item())
             
              # Accumulate loss
             running_loss += loss.item() 

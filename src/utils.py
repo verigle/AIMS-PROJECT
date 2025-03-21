@@ -28,7 +28,6 @@ ERA5_ATMOSPHERIC_VARIABLES = ["temperature", "u_component_of_wind", "v_component
 ERA5_STATIC_VARIABLES = ["land_sea_mask", "soil_type", "geopotential_at_surface"]
 
 
-
 def get_surface_feature_target_data(feature_sliced_data, target_sliced_data, 
                                     surface_variables=ERA5_SURFACE_VARIABLES):
     # Select surface variables
@@ -103,7 +102,7 @@ model.load_state_dict(torch.load('../model/best_models/best_model.pth'))
 ####################################################################################################################""
 
 
-def predict_fn(model=model, batch=None, rollout_nums=8):
+def predict_fn(model=model, batch=None, rollout_nums=2):
     model.eval()
     model = model.to("cuda")
     # batch = batch.to("cuda")
@@ -184,7 +183,8 @@ def custom_rmse(actual, prediction,
 def rmse_fn(predictions=None, 
             target_batch=None, var_name=None,
             weigths=None, var_type="surface",
-            atmos_level_idx=0, area="world"):
+            atmos_level_idx=0, area="world",
+            device="cuda"):
     two_steps_rmse = []
     pred_dates = []
     for i in range(len(predictions)):
@@ -193,9 +193,12 @@ def rmse_fn(predictions=None,
             prediction = pred.surf_vars[var_name][0, 0]#.numpy()
             if area=="world":
                 actual = target_batch.surf_vars[var_name].squeeze()[i,:,:][1:, :]
+                
+                
             else:
                 actual = target_batch.surf_vars[var_name].squeeze()[i,:,:]
             # actual = target_batch.surf_vars[var_name][0, 0].numpy()
+            actual = actual.to(device)
             
             # rmse = root_mean_squared_error(actual.flatten(), prediction.flatten())
             rmse_ = custom_rmse(actual, prediction, weigths)

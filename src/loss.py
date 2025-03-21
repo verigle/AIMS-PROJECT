@@ -5,7 +5,7 @@ import torch.nn as nn
 # Define weights
 ALPHA = 1/4
 BETA = 1.0
-DATASET_WEIGHTS = {'ERA5': 2.0, 'GFS-T0': 1.5}  # Dataset-specific weights
+DATASET_WEIGHTS = {'ERA5': 2.0, 'GFS-T0': 1.5, "OTHER": 1}  # Dataset-specific weights
 SURFACE_WEIGHTS = {"2t":3.0, "10u":0.77, "10v":0.66, "msl":1.5} # Weights for MSL, U10, V10, 2T
 ATMOSPHERIC_WEIGHTS = {"z":2.8, "q":0.78, "t":1.7, "u":0.87, "v":0.6}
 

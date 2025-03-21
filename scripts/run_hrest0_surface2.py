@@ -4,7 +4,7 @@ sys.path.append(os.path.abspath("../src"))
 from utils import get_surface_feature_target_data, get_atmos_feature_target_data
 from utils import get_static_feature_target_data, create_batch, predict_fn, rmse_weights
 from utils import rmse_fn, plot_rmses, create_hrest0_batch
-
+import pandas as pd
 import xarray as xr
 import gcsfs
 
@@ -19,8 +19,8 @@ store_era5 = fs.get_mapper('gs://weatherbench2/datasets/era5/1959-2023_01_10-wb1
 full_era5 = xr.open_zarr(store=store_era5, consolidated=True, chunks=None)
 
 # Select time range
-start_time = '2022-11-01'
-end_time = '2022-12-31'
+start_time = '2022-11-03'
+end_time = '2022-11-04'
 
 # World and South Africa data slicing
 sliced_hrest0_world = full_hrest0.sel(time=slice(start_time, end_time))
@@ -84,10 +84,10 @@ for i in range(len(selected_times) - 3):
     world_target_batch = create_hrest0_batch(world_target_surface_data, world_target_atmos_data, world_target_static_data)
     sa_feature_batch = create_hrest0_batch(sa_feature_surface_data, sa_feature_atmos_data, sa_feature_static_data)
     sa_target_batch = create_hrest0_batch(sa_target_surface_data, sa_target_atmos_data, sa_target_static_data)
-    
     # Predictions for all surface variables
     world_predictions = predict_fn(batch=world_feature_batch)
     sa_predictions = predict_fn(batch=sa_feature_batch)
+    print(world_predictions)
     
     # Compute RMSE for all surface variables at once
     # for var in surface_vars_names:
@@ -120,8 +120,6 @@ for i in range(len(selected_times) - 3):
             predictions=sa_predictions, target_batch=sa_target_batch,
             var_name=var, weigths=sa_rmse_weights, area="sa"
         )
-        print(world_rmses)
-        print(world_pred_dates)
 
         world_rmses_list[var].append(world_rmses)
         sa_rmses_list[var].append(sa_rmses)
@@ -130,6 +128,11 @@ for i in range(len(selected_times) - 3):
     
     if (i+1) % 10 == 0:
         print(f"Iterations {i+1}")
+# Saving for checking
+
+dict = {"dates": pred_dates_list, "rmses":world_rmses_list["2t"]}
+df_rmses = pd.DataFrame(dict)
+df_rmses.to_csv("rmses.csv")
 
 # Plot results for each surface variable after all iterations
 for var, title in zip(surface_vars_names, plots_titles):

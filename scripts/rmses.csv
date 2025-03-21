@@ -1,0 +1,6 @@
+,dates,rmses
+0,"[datetime.datetime(2022, 11, 3, 12, 0), datetime.datetime(2022, 11, 3, 18, 0)]","[24.58319664001465, 29.139835357666016]"
+1,"[datetime.datetime(2022, 11, 3, 18, 0), datetime.datetime(2022, 11, 4, 0, 0)]","[25.498380661010742, 28.782411575317383]"
+2,"[datetime.datetime(2022, 11, 4, 0, 0), datetime.datetime(2022, 11, 4, 6, 0)]","[nan, nan]"
+3,"[datetime.datetime(2022, 11, 4, 6, 0), datetime.datetime(2022, 11, 4, 12, 0)]","[nan, nan]"
+4,"[datetime.datetime(2022, 11, 4, 12, 0), datetime.datetime(2022, 11, 4, 18, 0)]","[23.828088760375977, 27.384307861328125]"

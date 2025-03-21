@@ -27,9 +27,11 @@ from utils import get_surface_feature_target_data, get_atmos_feature_target_data
 from utils import get_static_feature_target_data, create_batch, predict_fn, rmse_weights
 from utils import rmse_fn, plot_rmses, custom_rmse
 from lora import  create_custom_model, print_trainable_parameters
-from train_era5 import training
+
+from train_hres import training
 import torch.optim as optim
 from loss import AuroraLoss
+
 
 
 
@@ -42,7 +44,11 @@ model.load_state_dict(torch.load('../model/aurora-pretrained.pth'))
 
 model = create_custom_model(model)
 
+
 print_trainable_parameters(model)
+
+
+# # Get south africa Data
 
 fs = gcsfs.GCSFileSystem(token="anon")
 
@@ -50,9 +56,11 @@ store = fs.get_mapper('gs://weatherbench2/datasets/era5/1959-2023_01_10-wb13-6h-
 full_era5 = xr.open_zarr(store=store, consolidated=True, chunks=None)
 
 
+
 # start_time, end_time = '2022-11-01', '2023-01-31'
-start_time, end_time = '2022-12-01', '2023-01-31'
+start_time, end_time = '2023-01-05', '2023-01-31'
 # start_time, end_time = '2023-01-08', '2023-01-31'
+
 
 
 lat_max = -22.00 
@@ -69,6 +77,13 @@ sliced_era5_SA = (
     )
 )
 
+################################"" get hres data
+store_hrest0 = fs.get_mapper('gs://weatherbench2/datasets/hres_t0/2016-2022-6h-1440x721.zarr')
+full_hrest0 = xr.open_zarr(store=store_hrest0, consolidated=True, chunks=None)
+sliced_hrest0_sa = full_hrest0.sel(time=slice(start_time, end_time), 
+                                   latitude=slice(lat_min, lat_max), 
+                                   longitude=slice(lon_min, lon_max))
+
 
 optimizer = optim.Adam(model.parameters(), lr=1e-4)
 
@@ -76,16 +91,18 @@ optimizer = optim.Adam(model.parameters(), lr=1e-4)
 criterion = AuroraLoss()
 
 
+
+
 model,  maps = training(model=model, criterion=criterion,
              num_epochs=20, optimizer=optimizer,
-             dataset= sliced_era5_SA,
-             dataset_name="ERA5", 
-             accumulation_steps=8,
-             checkpoint_dir = '../model/checkpoints')
+             era5_data=sliced_era5_SA, 
+             hres_data=sliced_hrest0_sa,
+             dataset_name="OTHER", 
+             accumulation_steps=8)
 
 
-torch.save(model.state_dict(), "../model/training/era5/best_hres_model.pth")
-save_path  = "../report/training/era5"
+torch.save(model.state_dict(), "../model/training/hrest0/best_hres_model.pth")
+save_path  = "../report/training/hres"
 _, ax = plt.subplots(figsize=(8, 6), dpi=300)
 
 ax.plot(np.arange(1,len(maps)+1), maps)

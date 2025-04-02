@@ -28,7 +28,7 @@ from utils import get_static_feature_target_data, create_batch, predict_fn, rmse
 from utils import rmse_fn, plot_rmses, custom_rmse
 from lora import  create_custom_model, print_trainable_parameters
 
-from train_hres import training
+from train_hres import training, logger
 import torch.optim as optim
 from loss import AuroraLoss
 
@@ -45,7 +45,9 @@ model.load_state_dict(torch.load('../model/aurora-pretrained.pth'))
 model = create_custom_model(model)
 
 
-print_trainable_parameters(model)
+message  = print_trainable_parameters(model)
+
+logger.info(message)
 
 
 # # Get south africa Data
@@ -58,7 +60,7 @@ full_era5 = xr.open_zarr(store=store, consolidated=True, chunks=None)
 
 
 # start_time, end_time = '2022-11-01', '2023-01-31'
-start_time, end_time = '2023-01-05', '2023-01-31'
+start_time, end_time = '2021-01-01', '2021-12-31' #'2021-12-31'
 # start_time, end_time = '2023-01-08', '2023-01-31'
 
 
@@ -94,7 +96,7 @@ criterion = AuroraLoss()
 
 
 model,  maps = training(model=model, criterion=criterion,
-             num_epochs=20, optimizer=optimizer,
+             num_epochs=100, optimizer=optimizer,
              era5_data=sliced_era5_SA, 
              hres_data=sliced_hrest0_sa,
              dataset_name="OTHER", 

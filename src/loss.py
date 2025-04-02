@@ -38,7 +38,7 @@ class AuroraLoss(nn.Module):
         for surf_var, weight in self.surface_weights.items():
             pred_tensor = pred.surf_vars[surf_var].squeeze()
             pred_tensor = pred_tensor.to("cuda")
-            target_tensor = target.surf_vars[surf_var].squeeze()[1,:,:]
+            target_tensor = target.surf_vars[surf_var].squeeze()[0,:,:]
             target_tensor = target_tensor.to("cuda")
             
             abs_diff = torch.abs(pred_tensor - target_tensor)
@@ -62,7 +62,8 @@ class AuroraLoss(nn.Module):
                 
                 pred_tensor= pred.atmos_vars[atmos_var].squeeze()[c,:,:]
                 pred_tensor = pred_tensor.to("cuda")
-                target_tensor = target.atmos_vars[atmos_var].squeeze()[1,c,:,:]
+                target_tensor = target.atmos_vars[atmos_var].squeeze()[0,c,:,:]
+                
                 target_tensor = target_tensor.to("cuda")
                 
                 abs_diff = torch.abs(pred_tensor - target_tensor)

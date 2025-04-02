@@ -33,7 +33,7 @@ def training(model, criterion, num_epochs, optimizer, era5_data=None, hres_data=
     torch.autograd.set_detect_anomaly(True)  # Enable anomaly detection
     
     selected_times = hres_data.time.values  # Extract time values as NumPy array (faster access)
-    num_samples = len(selected_times) - rollouts_num - 2
+    num_samples = len(selected_times) - rollouts_num - 1
     loss_list = []
 
     os.makedirs(checkpoint_dir, exist_ok=True)  # Ensure checkpoint directory exists
@@ -46,7 +46,7 @@ def training(model, criterion, num_epochs, optimizer, era5_data=None, hres_data=
         running_loss = 0
 
         for i in range(num_samples):
-            t0, t1, t2, t3 = selected_times[i], selected_times[i+1], selected_times[i+1+rollouts_num], selected_times[i+2+rollouts_num]
+            t0, t1, t2, t3 = selected_times[i], selected_times[i+1], selected_times[i+2], selected_times[i+3]
 
             # Load required time slices once (avoids redundant slicing)
             sa_feature_hrest0_data = hres_data.sel(time=slice(t0, t1))
@@ -63,22 +63,23 @@ def training(model, criterion, num_epochs, optimizer, era5_data=None, hres_data=
             input_batch = create_hrest0_batch(sa_feature_surface_data, sa_feature_atmos_data, sa_feature_static_data).to(device)
             target_batch = create_hrest0_batch(sa_target_surface_data, sa_target_atmos_data, sa_target_static_data).to(device)
 
+
             # Forward pass
             outputs = predict_train_fn(model=model, batch=input_batch)
             prediction_48h = outputs[-1]
 
+
             # Compute loss and accumulate
-            loss = criterion(prediction_48h, target_batch, dataset_name)/ accumulation_steps
-            # Backward pass
-            loss.backward()
-            
-            running_loss += loss.item()  
+            loss = criterion(prediction_48h, target_batch, dataset_name) / accumulation_steps
             
             # Check for NaNs in loss
             if torch.isnan(loss).any():
-                logger.info(f"NaN detected in loss at iteration {i}")
+                logger.error(f"NaN detected in loss at iteration {i}")
 
-          
+            running_loss += loss.detach()  
+
+            # Backward pass
+            loss.backward()
 
             # Update weights and reset gradients every accumulation_steps
             if (i + 1) % accumulation_steps == 0 or (i + 1) == num_samples:
@@ -86,10 +87,10 @@ def training(model, criterion, num_epochs, optimizer, era5_data=None, hres_data=
                 optimizer.zero_grad()
 
         # Calculate epoch loss
-        # epoch_loss = running_loss / num_samples
-        epoch_loss = running_loss / (num_samples / accumulation_steps)
+        epoch_loss = running_loss / (num_samples // accumulation_steps)
 
-        loss_list.append(epoch_loss)
+        # epoch_loss = running_loss / num_samples
+        loss_list.append(epoch_loss.cpu().numpy())
 
         # Save checkpoint
         checkpoint_path = os.path.join(checkpoint_dir, f'checkpoint_epoch_{epoch+1}.pth')

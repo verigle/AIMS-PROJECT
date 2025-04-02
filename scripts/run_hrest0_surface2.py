@@ -87,7 +87,7 @@ for i in range(len(selected_times) - 3):
     # Predictions for all surface variables
     world_predictions = predict_fn(batch=world_feature_batch)
     sa_predictions = predict_fn(batch=sa_feature_batch)
-    print(world_predictions)
+    print(f"prediction: {world_predictions}")
     
     # Compute RMSE for all surface variables at once
     # for var in surface_vars_names:

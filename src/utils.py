@@ -91,18 +91,18 @@ def create_batch(surf_vars_ds, atmos_vars_ds, static_vars_ds, i=1, target=True):
 ####################################################################################################################""
 # model
 # model = AuroraSmall()
-model = AuroraSmall(
-    use_lora=False,  # Model was not fine-tuned.
-    autocast=True,  # Use AMP.
-)
-model = create_custom_model(model, lora_r = 8, lora_alpha = 16)
+# model = AuroraSmall(
+#     use_lora=False,  # Model was not fine-tuned.
+#     autocast=True,  # Use AMP.
+# )
+# model = create_custom_model(model, lora_r = 8, lora_alpha = 16)
 
 # model.load_state_dict(torch.load('../model/aurora.pth'))
-model.load_state_dict(torch.load('../model/best_models/best_model.pth'))
+# model.load_state_dict(torch.load('../model/best_models/best_model.pth'))
 ####################################################################################################################""
 
 
-def predict_fn(model=model, batch=None, rollout_nums=2):
+def predict_fn(model=None, batch=None, rollout_nums=2):
     model.eval()
     model = model.to("cuda")
     # batch = batch.to("cuda")
@@ -110,7 +110,7 @@ def predict_fn(model=model, batch=None, rollout_nums=2):
         preds = [pred for pred in rollout(model, batch, steps=rollout_nums)]
     return preds
 
-def predict_train_fn(model=model, batch=None, rollout_nums=8):
+def predict_train_fn(model=None, batch=None, rollout_nums=8):
     model = model.to("cuda")
     preds = [pred for pred in rollout(model, batch, steps=rollout_nums)]
     return preds
@@ -199,6 +199,8 @@ def rmse_fn(predictions=None,
                 actual = target_batch.surf_vars[var_name].squeeze()[i,:,:]
             # actual = target_batch.surf_vars[var_name][0, 0].numpy()
             actual = actual.to(device)
+            # print(f"prediction {prediction}")
+            # print(f"actual {actual}")
             
             # rmse = root_mean_squared_error(actual.flatten(), prediction.flatten())
             rmse_ = custom_rmse(actual, prediction, weigths)

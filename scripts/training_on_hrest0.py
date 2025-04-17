@@ -38,11 +38,23 @@ from loss import AuroraLoss
 model = AuroraSmall(
     use_lora=False,  # Model was not fine-tuned.
     autocast=True,  # Use AMP.
+    stabilise_level_agg=True
 )
-model.load_state_dict(torch.load('../model/aurora-pretrained.pth'))
+model.load_state_dict(torch.load('../model/aurora-0.25-small-pretrained.pth'))
 
 
 model = create_custom_model(model)
+
+# model = AuroraSmall()
+# model = AuroraSmall(
+#     use_lora=False,  # model was not fine-tuned.
+#     autocast=True,  # Use AMP.
+#     stabilise_level_agg=True
+# )
+# model = create_custom_model(model, lora_r = 8, lora_alpha = 16)
+# checkpoint = torch.load('../model/training/hrest0/checkpoint_epoch_7.pth')
+
+# model.load_state_dict(checkpoint['model_state_dict'], strict=False)
 
 
 message  = print_trainable_parameters(model)
@@ -87,7 +99,7 @@ sliced_hrest0_sa = full_hrest0.sel(time=slice(start_time, end_time),
                                    longitude=slice(lon_min, lon_max))
 
 
-optimizer = optim.Adam(model.parameters(), lr=1e-4)
+optimizer = optim.Adam(model.parameters(), lr=1e-5)
 
 
 criterion = AuroraLoss()
@@ -113,4 +125,3 @@ ax.set_xlabel("Epoch")
 plt.savefig(f"{save_path}/map-learning-curve.pdf", bbox_inches="tight")
 plt.savefig(f"{save_path}/map-learning-curve.png", bbox_inches="tight")
 plt.savefig(f"{save_path}/map-learning-curve.svg", bbox_inches="tight")
-

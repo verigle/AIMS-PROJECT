@@ -20,6 +20,14 @@ from utils import (
     predict_fn
 )
 from evaluation_metric import evaluation_rmse
+log_file = "evaluation.log"
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    handlers=[logging.FileHandler(log_file), logging.StreamHandler(sys.stdout)]
+)
+logger = logging.getLogger(__name__)
+
 
 #
 SURFACE_WEIGHTS = {"2t":[], "10u":[], "10v":[], "msl":[]} 
@@ -148,10 +156,9 @@ def evaluation(model_fine_tuned,
                                                     torch.tensor(hres_data.latitude.values),
                                                     torch.tensor(hres_data.longitude.values)   
                                                 ) 
-                
-                    
-            
-
+        if not counter%10:
+            logger.info(f"Iteration {counter} done")
+    logger.info("Evaluation completed")
     
     return {
         'counter': counter,

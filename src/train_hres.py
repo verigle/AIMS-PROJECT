@@ -28,7 +28,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 def training(model, criterion, num_epochs, optimizer, era5_data=None, hres_data=None,
-             dataset_name="HRES", accumulation_steps=8, rollouts_num=8, checkpoint_dir='../model/training/hrest0'):
+             dataset_name="HRES", accumulation_steps=32, rollouts_num=8, checkpoint_dir='../model/training/hrest0'):
     
     torch.autograd.set_detect_anomaly(True)  # Enable anomaly detection
     
@@ -40,8 +40,11 @@ def training(model, criterion, num_epochs, optimizer, era5_data=None, hres_data=
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)  # Move model to GPU if available
 
+    # model.configure_activation_checkpointing()
+    model.train()
+    
+    
     for epoch in range(num_epochs):
-        model.train()
         optimizer.zero_grad()  # Initialize gradients
         running_loss = 0
 

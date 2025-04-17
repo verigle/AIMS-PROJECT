@@ -1,0 +1,71 @@
+2025-04-04 06:54:05,109 - INFO - trainable parameters: 1,978,368/114,775,952 (1.72%)
+2025-04-04 14:52:19,849 - INFO - Epoch [1/100], Loss: 267.8755
+2025-04-04 14:52:19,849 - INFO - Checkpoint saved: ../model/training/hrest0/checkpoint_epoch_1.pth
+2025-04-04 22:50:08,209 - INFO - Epoch [2/100], Loss: 258.4059
+2025-04-05 10:22:58,633 - INFO - trainable parameters: 1,978,368/114,775,952 (1.72%)
+2025-04-05 18:38:51,343 - INFO - Epoch [1/100], Loss: 309.4974
+2025-04-05 18:38:51,344 - INFO - Checkpoint saved: ../model/training/hrest0/checkpoint_epoch_1.pth
+2025-04-06 02:36:41,439 - INFO - Epoch [2/100], Loss: 270.5842
+2025-04-06 02:36:41,440 - INFO - Checkpoint saved: ../model/training/hrest0/checkpoint_epoch_2.pth
+2025-04-06 10:30:52,783 - INFO - Epoch [3/100], Loss: 260.3435
+2025-04-06 10:30:52,783 - INFO - Checkpoint saved: ../model/training/hrest0/checkpoint_epoch_3.pth
+2025-04-06 18:24:34,149 - INFO - Epoch [4/100], Loss: 254.4814
+2025-04-06 18:24:34,149 - INFO - Checkpoint saved: ../model/training/hrest0/checkpoint_epoch_4.pth
+2025-04-07 04:10:09,942 - INFO - trainable parameters: 1,978,368/114,775,952 (1.72%)
+2025-04-07 12:08:17,771 - INFO - Epoch [1/100], Loss: 319.4269
+2025-04-07 12:08:17,772 - INFO - Checkpoint saved: ../model/training/hrest0/checkpoint_epoch_1.pth
+2025-04-07 13:25:05,081 - INFO - trainable parameters: 1,978,368/114,775,952 (1.72%)
+2025-04-07 21:30:11,404 - INFO - Epoch [1/100], Loss: 297.5639
+2025-04-07 21:30:11,404 - INFO - Checkpoint saved: ../model/training/hrest0/checkpoint_epoch_1.pth
+
+2025-04-08 09:28:35,565 - INFO - trainable parameters: 1,978,368/114,775,952 (1.72%)
+2025-04-08 17:26:01,765 - INFO - Epoch [1/100], Loss: 304.9438
+2025-04-08 17:26:01,766 - INFO - Checkpoint saved: ../model/training/hrest0/checkpoint_epoch_1.pth
+2025-04-09 01:22:40,875 - INFO - Epoch [2/100], Loss: 286.0571
+2025-04-09 01:22:40,876 - INFO - Checkpoint saved: ../model/training/hrest0/checkpoint_epoch_2.pth
+2025-04-09 09:18:42,946 - INFO - Epoch [3/100], Loss: 273.3438
+2025-04-09 09:18:42,947 - INFO - Checkpoint saved: ../model/training/hrest0/checkpoint_epoch_3.pth
+2025-04-09 17:17:55,456 - INFO - Epoch [4/100], Loss: 268.3984
+2025-04-09 17:17:55,457 - INFO - Checkpoint saved: ../model/training/hrest0/checkpoint_epoch_4.pth
+2025-04-10 01:18:15,836 - INFO - Epoch [5/100], Loss: 252.9810
+2025-04-10 01:18:15,836 - INFO - Checkpoint saved: ../model/training/hrest0/checkpoint_epoch_5.pth
+2025-04-10 09:16:14,563 - INFO - Epoch [6/100], Loss: 233.8357
+2025-04-10 09:16:14,563 - INFO - Checkpoint saved: ../model/training/hrest0/checkpoint_epoch_6.pth
+2025-04-10 17:17:49,940 - INFO - Epoch [7/100], Loss: 224.2642
+2025-04-10 17:17:49,942 - INFO - Checkpoint saved: ../model/training/hrest0/checkpoint_epoch_7.pth
+2025-04-11 15:45:47,727 - INFO - trainable parameters: 1,978,368/114,776,976 (1.72%)
+2025-04-12 00:07:22,636 - INFO - Epoch [1/100], Loss: 241.5114
+2025-04-12 00:07:22,637 - INFO - Checkpoint saved: ../model/training/hrest0/checkpoint_epoch_1.pth
+2025-04-12 08:20:44,194 - INFO - Epoch [2/100], Loss: 199.4198
+2025-04-12 08:20:44,195 - INFO - Checkpoint saved: ../model/training/hrest0/checkpoint_epoch_2.pth
+2025-04-12 16:18:00,282 - INFO - Epoch [3/100], Loss: 185.2308
+2025-04-12 16:18:00,283 - INFO - Checkpoint saved: ../model/training/hrest0/checkpoint_epoch_3.pth
+2025-04-12 21:00:18,230 - INFO - trainable parameters: 1,978,368/114,776,976 (1.72%)
+2025-04-13 05:00:55,098 - INFO - Epoch [1/100], Loss: 904.9625
+2025-04-13 05:00:55,098 - INFO - Checkpoint saved: ../model/training/hrest0/checkpoint_epoch_1.pth
+2025-04-13 12:53:34,559 - INFO - Epoch [2/100], Loss: 778.1830
+2025-04-13 12:53:34,560 - INFO - Checkpoint saved: ../model/training/hrest0/checkpoint_epoch_2.pth
+2025-04-13 21:03:00,826 - INFO - Epoch [3/100], Loss: 627.9719
+2025-04-13 21:03:00,827 - INFO - Checkpoint saved: ../model/training/hrest0/checkpoint_epoch_3.pth
+2025-04-14 05:11:14,463 - INFO - Epoch [4/100], Loss: 519.0355
+2025-04-14 05:11:14,463 - INFO - Checkpoint saved: ../model/training/hrest0/checkpoint_epoch_4.pth
+2025-04-14 13:24:54,418 - INFO - Epoch [5/100], Loss: 441.2139
+2025-04-14 13:24:54,418 - INFO - Checkpoint saved: ../model/training/hrest0/checkpoint_epoch_5.pth
+2025-04-14 21:52:28,091 - INFO - Epoch [6/100], Loss: 381.5021
+2025-04-14 21:52:28,092 - INFO - Checkpoint saved: ../model/training/hrest0/checkpoint_epoch_6.pth
+2025-04-15 06:08:27,143 - INFO - Epoch [7/100], Loss: 334.4509
+2025-04-15 06:08:27,144 - INFO - Checkpoint saved: ../model/training/hrest0/checkpoint_epoch_7.pth
+2025-04-15 14:23:01,104 - INFO - Epoch [8/100], Loss: 294.9248
+2025-04-15 14:23:01,104 - INFO - Checkpoint saved: ../model/training/hrest0/checkpoint_epoch_8.pth
+2025-04-15 22:38:58,766 - INFO - Epoch [9/100], Loss: 266.1623
+2025-04-15 22:38:58,767 - INFO - Checkpoint saved: ../model/training/hrest0/checkpoint_epoch_9.pth
+2025-04-16 06:41:00,592 - INFO - Epoch [10/100], Loss: 246.5019
+2025-04-16 06:41:00,592 - INFO - Checkpoint saved: ../model/training/hrest0/checkpoint_epoch_10.pth
+2025-04-16 15:00:57,316 - INFO - Epoch [11/100], Loss: 234.8471
+2025-04-16 15:00:57,316 - INFO - Checkpoint saved: ../model/training/hrest0/checkpoint_epoch_11.pth
+2025-04-16 23:21:07,428 - INFO - Epoch [12/100], Loss: 225.3988
+2025-04-16 23:21:07,428 - INFO - Checkpoint saved: ../model/training/hrest0/checkpoint_epoch_12.pth
+2025-04-17 07:38:10,538 - INFO - Epoch [13/100], Loss: 219.0385
+2025-04-17 07:38:10,538 - INFO - Checkpoint saved: ../model/training/hrest0/checkpoint_epoch_13.pth
+2025-04-17 15:56:13,065 - INFO - Epoch [14/100], Loss: 213.8076
+2025-04-17 15:56:13,066 - INFO - Checkpoint saved: ../model/training/hrest0/checkpoint_epoch_14.pth

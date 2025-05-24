@@ -28,6 +28,13 @@ ERA5_ATMOSPHERIC_VARIABLES = ["temperature", "u_component_of_wind", "v_component
 ERA5_STATIC_VARIABLES = ["land_sea_mask", "soil_type", "geopotential_at_surface"]
 
 
+
+def min_max_scaled(data):
+    data= np.array(data)
+    
+    data = (data-data.min())/(data.max()-data.min())
+    return data
+
 def get_surface_feature_target_data(feature_sliced_data, target_sliced_data, 
                                     surface_variables=ERA5_SURFACE_VARIABLES):
     # Select surface variables
@@ -121,7 +128,7 @@ def predict_train_fn(model=None, batch=None, rollout_nums=8):
 def rmse_weights(latitudes, longitudes, 
                  R=6371.0, device="cuda"):
     """
-    Compute area weights for RMSE calculation over a global grid.
+    Compute area weights for RMSE calculation over a Europe grid.
 
     Parameters:
         latitudes (array-like): 1D array of latitudes (degrees).
@@ -171,6 +178,7 @@ def custom_rmse(actual, prediction,
 
     # Compute weighted squared error
     if type=="sum":
+        # print(actual.shape, prediction.shape, weights.shape)
         squared_error = ((actual - prediction) ** 2) * weights
         rmse = torch.sqrt(squared_error.sum()/weights.sum())
     else:
@@ -192,7 +200,8 @@ def rmse_fn(predictions=None,
         if var_type=="surface":
             prediction = pred.surf_vars[var_name][0, 0]#.numpy()
             if area=="world":
-                actual = target_batch.surf_vars[var_name].squeeze()[i,:,:][1:, :]
+                # actual = target_batch.surf_vars[var_name].squeeze()[i,:,:][1:, :]
+                actual = target_batch.surf_vars[var_name].squeeze()[i,:,:]
                 
                 
             else:
@@ -212,7 +221,8 @@ def rmse_fn(predictions=None,
             prediction = pred.atmos_vars[var_name].squeeze()[atmos_level_idx,:,:].squeeze()
             # actual = target_batch.atmos_vars[var_name].squeeze()[i,:,:][1:, :]
             if area=="world":
-                actual = target_batch.atmos_vars[var_name].squeeze()[i,atmos_level_idx,:,:][:-1,:]
+                # actual = target_batch.atmos_vars[var_name].squeeze()[i,atmos_level_idx,:,:][:-1,:]
+                actual = target_batch.atmos_vars[var_name].squeeze()[i,atmos_level_idx,:,:]
             else:
                 actual = target_batch.atmos_vars[var_name].squeeze()[i,atmos_level_idx,:,:]
             
@@ -225,10 +235,11 @@ def rmse_fn(predictions=None,
 
 
 def plot_rmses(variable, rmses_world, rmses_sa, 
-               figsize=(12, 8), fontsize=18,
+               figsize=(12, 8), fontsize=35,
                date_ranges=None, 
                title=None,
                save_path="../report/rmses_world_SA",
+               place = None,
                atmos_level=None):
 
     fig, ax = plt.subplots(figsize=figsize, dpi=300)
@@ -246,26 +257,28 @@ def plot_rmses(variable, rmses_world, rmses_sa,
     num_ticks = min(6, len(formatted_dates_6_hours))
     tick_positions = np.linspace(0, len(formatted_dates_6_hours) - 1, num_ticks, dtype=int)
 
-    # Plot RMSEs with improved colors and styles
-    ax.plot(x_indices, np.array(rmses_world)[:, 0], label="Global RMSE (6h Forecast)", color="blue", linestyle="-", linewidth=1)
-    ax.plot(x_indices, np.array(rmses_sa)[:, 0], label="South Africa RMSE (6h Forecast)", color="orange", linestyle="-", linewidth=1)
-    ax.plot(x_indices, np.array(rmses_world)[:, 1], label="Global RMSE (12h Forecast)", color="blue", linestyle="--", linewidth=1)
-    ax.plot(x_indices, np.array(rmses_sa)[:, 1], label="South Africa RMSE (12h Forecast)", color="orange", linestyle="--", linewidth=1)
+    # Plot RMSEs
+    ax.plot(x_indices, np.array(rmses_world)[:, 0], label=f"{place} RMSE (6h Forecast)", color="blue", linestyle="-", linewidth=2)
+    ax.plot(x_indices, np.array(rmses_sa)[:, 0], label="South Africa RMSE (6h Forecast)", color="orange", linestyle="-", linewidth=2)
+    ax.plot(x_indices, np.array(rmses_world)[:, 1], label=f"{place} RMSE (12h Forecast)", color="blue", linestyle="--", linewidth=2)
+    ax.plot(x_indices, np.array(rmses_sa)[:, 1], label="South Africa RMSE (12h Forecast)", color="orange", linestyle="--", linewidth=2)
 
-    # Set selected x-ticks
+    # Set selected x-ticks and make horizontal
     ax.set_xticks(tick_positions)
-    ax.set_xticklabels([formatted_dates_12_hours[i] for i in tick_positions], rotation=30, ha='right')
+    ax.set_xticklabels([formatted_dates_12_hours[i] for i in tick_positions], fontsize=fontsize-4, rotation=30, ha='right')
+    
 
-    # Improve legend appearance
+    # Legend
     ax.legend(title="Forecast Horizon", title_fontsize=fontsize-2, fontsize=fontsize-4,
               bbox_to_anchor=(1.05, 1), loc="upper left", frameon=False)
 
-    # Improve axis labels and title
+    # Axis labels and title
     ax.set_xlabel("Forecast Date", fontsize=fontsize-2)
     ax.set_ylabel("Root Mean Squared Error (RMSE)", fontsize=fontsize-2)
-    ax.set_title(title, fontsize=fontsize, pad=20)
+    # ax.set_title(title, fontsize=fontsize, pad=20)
+
+    # Save plots
     if atmos_level:
-        # Save the plots
         plt.savefig(f"{save_path}/rmse-{variable}-{atmos_level}.pdf", bbox_inches="tight")
         plt.savefig(f"{save_path}/rmse-{variable}-{atmos_level}.png", bbox_inches="tight")
         plt.savefig(f"{save_path}/rmse-{variable}-{atmos_level}.svg", bbox_inches="tight")
@@ -275,7 +288,6 @@ def plot_rmses(variable, rmses_world, rmses_sa,
         plt.savefig(f"{save_path}/rmse-{variable}.svg", bbox_inches="tight")
 
     plt.show()
-
 
 
 ###################################### HRES T0 part##########################################

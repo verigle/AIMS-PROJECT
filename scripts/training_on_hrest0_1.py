@@ -35,26 +35,23 @@ from loss import AuroraLoss
 
 
 
-model = AuroraSmall(
-    use_lora=False,  # Model was not fine-tuned.
-    autocast=True,  # Use AMP.
-    stabilise_level_agg=True
-)
-model.load_state_dict(torch.load('../model/aurora-0.25-small-pretrained.pth'))
-
-
-model = full_linear_layer_lora(model)
-
-# model = AuroraSmall()
 # model = AuroraSmall(
-#     use_lora=False,  # model was not fine-tuned.
+#     use_lora=False,  # Model was not fine-tuned.
 #     autocast=True,  # Use AMP.
 #     stabilise_level_agg=True
 # )
-# model = create_custom_model(model, lora_r = 8, lora_alpha = 16)
-# checkpoint = torch.load('../model/training/hrest0/checkpoint_epoch_7.pth')
+# model.load_state_dict(torch.load('../model/aurora-0.25-small-pretrained.pth'))
 
-# model.load_state_dict(checkpoint['model_state_dict'], strict=False)
+# model = AuroraSmall()
+model = AuroraSmall(
+    use_lora=False,  # model was not fine-tuned.
+    autocast=True,  # Use AMP.
+    stabilise_level_agg=True
+)
+model = full_linear_layer_lora(model, lora_r = 8, lora_alpha = 1)
+checkpoint = torch.load('../model/training/hrest0/model2/checkpoint_epoch_12.pth')
+
+model.load_state_dict(checkpoint['model_state_dict'])
 
 
 message  = print_trainable_parameters(model)
@@ -72,7 +69,7 @@ full_era5 = xr.open_zarr(store=store, consolidated=True, chunks=None)
 
 
 # start_time, end_time = '2022-11-01', '2023-01-31'
-start_time, end_time = '2021-01-01', '2021-12-31' #'2021-12-31'
+start_time, end_time = '2020-01-01', '2020-12-31' #'2021-12-31'
 # start_time, end_time = '2023-01-08', '2023-01-31'
 
 

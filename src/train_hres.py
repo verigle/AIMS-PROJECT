@@ -19,7 +19,7 @@ from utils import (
 )
 
 # Configure logging
-log_file = "trainings.log"
+log_file = "training_on_hrest0_wampln_deterministic_backbone.log"
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
@@ -27,8 +27,10 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-def training(model, criterion, num_epochs, optimizer, era5_data=None, hres_data=None,
-             dataset_name="HRES", accumulation_steps=32, rollouts_num=8, checkpoint_dir='../model/training/hrest0'):
+def training(model, criterion, num_epochs, optimizer, 
+             era5_data=None, hres_data=None,
+             dataset_name="HRES", accumulation_steps=32, lr_scheduler=None,
+             rollouts_num=8, checkpoint_dir='../model/training/hrest0/backbone'):
     
     torch.autograd.set_detect_anomaly(True)  # Enable anomaly detection
     
@@ -87,10 +89,13 @@ def training(model, criterion, num_epochs, optimizer, era5_data=None, hres_data=
             if (i + 1) % accumulation_steps == 0 or (i + 1) == num_samples:
                 optimizer.step()
                 optimizer.zero_grad()
-
+        # Adjust learning rate
+        lr_scheduler.step()
         # Calculate epoch loss
         # epoch_loss = running_loss / num_samples
+        
         epoch_loss = running_loss / (num_samples / accumulation_steps)
+        
 
         loss_list.append(epoch_loss)
 

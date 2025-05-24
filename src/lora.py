@@ -144,4 +144,4 @@ def print_trainable_parameters(model):
     for _, p in model.named_parameters():
         parameters += p.numel()
         trainable += p.numel() if p.requires_grad else 0
-    return f"trainable parameters: {trainable:,}/{parameters:,} ({100 * trainable / parameters:.2f}%)"
+    return f"trainable parameters: {trainable:,}/{parameters-trainable:,} ({100 * trainable / (parameters-trainable):.2f}%)"

@@ -49,6 +49,9 @@ from utils import rmse_fn, plot_rmses, create_hrest0_batch
 from evaluation import evaluation
 from lora import create_custom_model
 
+torch.use_deterministic_algorithms(True)
+
+os.environ['CUBLAS_WORKSPACE_CONFIG'] = ':4096:8'
 
 # # Data
 
@@ -103,7 +106,7 @@ fine_tuned_model = AuroraSmall(
     stabilise_level_agg=True
 )
 fine_tuned_model = create_custom_model(fine_tuned_model, lora_r = 8, lora_alpha = 1)
-checkpoint = torch.load('../model/training/hrest0/checkpoint_epoch_13.pth')
+checkpoint = torch.load('../model/training/hrest0/checkpoint_epoch_4.pth')
 
 fine_tuned_model.load_state_dict(checkpoint['model_state_dict'])
 

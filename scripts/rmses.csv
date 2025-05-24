@@ -1,6 +1,6 @@
 ,dates,rmses
-0,"[datetime.datetime(2022, 11, 3, 12, 0), datetime.datetime(2022, 11, 3, 18, 0)]","[22.470684051513672, 20.6201114654541]"
-1,"[datetime.datetime(2022, 11, 3, 18, 0), datetime.datetime(2022, 11, 4, 0, 0)]","[22.254179000854492, 20.13059425354004]"
+0,"[datetime.datetime(2022, 11, 3, 12, 0), datetime.datetime(2022, 11, 3, 18, 0)]","[1.5867588520050049, 2.5407044887542725]"
+1,"[datetime.datetime(2022, 11, 3, 18, 0), datetime.datetime(2022, 11, 4, 0, 0)]","[1.5025980472564697, 2.2598671913146973]"
 2,"[datetime.datetime(2022, 11, 4, 0, 0), datetime.datetime(2022, 11, 4, 6, 0)]","[nan, nan]"
 3,"[datetime.datetime(2022, 11, 4, 6, 0), datetime.datetime(2022, 11, 4, 12, 0)]","[nan, nan]"
-4,"[datetime.datetime(2022, 11, 4, 12, 0), datetime.datetime(2022, 11, 4, 18, 0)]","[22.521333694458008, 21.121707916259766]"
+4,"[datetime.datetime(2022, 11, 4, 12, 0), datetime.datetime(2022, 11, 4, 18, 0)]","[1.5744925737380981, 2.387906074523926]"

@@ -20,7 +20,7 @@ from utils import (
     predict_fn
 )
 from evaluation_metric import evaluation_rmse
-log_file = "evaluation.log"
+log_file = "evaluation_run_wampln_smalftvs_pretrained_sa.log"
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",

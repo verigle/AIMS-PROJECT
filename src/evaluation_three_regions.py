@@ -20,7 +20,7 @@ from utils import (
     predict_fn
 )
 from evaluation_metric import evaluation_rmse
-log_file = "rmses_grid_sp_sa_vs_usa_eu.log"
+log_file = "evaluation_run_wampln_smalftvs_pretrained_sa.log"
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
@@ -48,7 +48,8 @@ def evaluation_between_regions(
             target_region=None,
             third_region=None,
             base_region= None,
-            rollouts_num=8):
+            rollouts_num=8,
+            device = "cuda"):
     
     tr_surface_rmses = {var:np.zeros(8) for var in SURFACE_VARIABLES}
     br_surface_rmses = {var:np.zeros(8) for var in SURFACE_VARIABLES}
@@ -63,7 +64,7 @@ def evaluation_between_regions(
     selected_times = hres_data.time.values  # Extract time values as NumPy array (faster access)
     num_samples = len(selected_times) - rollouts_num - 2
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
     model.to(device)  # Move model to GPU if available
 
     counter = 0
@@ -177,9 +178,9 @@ def evaluation_between_regions(
 
             
             # predictions
-            tr_predictions =  predict_fn(model=model, batch=tr_input_batch, rollout_nums=rollouts_num)
-            br_predictions =  predict_fn(model=model, batch=br_input_batch, rollout_nums=rollouts_num)
-            third_predictions =  predict_fn(model=model, batch=third_input_batch, rollout_nums=rollouts_num)
+            tr_predictions =  predict_fn(model=model, batch=tr_input_batch, rollout_nums=rollouts_num, device=device)
+            br_predictions =  predict_fn(model=model, batch=br_input_batch, rollout_nums=rollouts_num, device=device)
+            third_predictions =  predict_fn(model=model, batch=third_input_batch, rollout_nums=rollouts_num, device=device)
             
             # Compuete rmse for all lead times
             tr_prediction = tr_predictions[i]
@@ -189,25 +190,25 @@ def evaluation_between_regions(
             for surf_var in SURFACE_VARIABLES:
                 # for target region
                 tr_pred_tensor = tr_prediction.surf_vars[surf_var].squeeze()
-                tr_pred_tensor = tr_pred_tensor.to("cuda")
+                tr_pred_tensor = tr_pred_tensor.to(device)
                 
                 # for target region
                 br_pred_tensor = br_prediction.surf_vars[surf_var].squeeze()
-                br_pred_tensor = br_pred_tensor.to("cuda")
+                br_pred_tensor = br_pred_tensor.to(device)
                 
                 # for third region
                 third_pred_tensor = third_prediction.surf_vars[surf_var].squeeze()
-                third_pred_tensor = third_pred_tensor.to("cuda")
+                third_pred_tensor = third_pred_tensor.to(device)
               
                 # target tensors
                 tr_target_tensor = tr_target_batch.surf_vars[surf_var].squeeze()[0,:,:]
-                tr_target_tensor = tr_target_tensor.to("cuda")
+                tr_target_tensor = tr_target_tensor.to(device)
                 
                 br_target_tensor = br_target_batch.surf_vars[surf_var].squeeze()[0,:,:]
-                br_target_tensor = br_target_tensor.to("cuda")
+                br_target_tensor = br_target_tensor.to(device)
                 
                 third_target_tensor = third_target_batch.surf_vars[surf_var].squeeze()[0,:,:]
-                third_target_tensor = third_target_tensor.to("cuda")
+                third_target_tensor = third_target_tensor.to(device)
                 
                 # Rmses
                 rmse_tr = evaluation_rmse(
@@ -247,25 +248,25 @@ def evaluation_between_regions(
                 for atmos_var in ATMOSPHERIC_VARIABLES:
                     #target region
                     tr_pred_tensor = tr_prediction.atmos_vars[atmos_var].squeeze()[c,:,:]
-                    tr_pred_tensor = tr_pred_tensor.to("cuda")
+                    tr_pred_tensor = tr_pred_tensor.to(device)
                     
                     #target region
                     br_pred_tensor = br_prediction.atmos_vars[atmos_var].squeeze()[c,:,:]
-                    br_pred_tensor = br_pred_tensor.to("cuda")
+                    br_pred_tensor = br_pred_tensor.to(device)
                     
                      #third region
                     third_pred_tensor = third_prediction.atmos_vars[atmos_var].squeeze()[c,:,:]
-                    third_pred_tensor = third_pred_tensor.to("cuda")
+                    third_pred_tensor = third_pred_tensor.to(device)
                     
                     
                     tr_target_tensor = tr_target_batch.atmos_vars[atmos_var].squeeze()[0,c,:,:]
-                    tr_target_tensor = tr_target_tensor.to("cuda")
+                    tr_target_tensor = tr_target_tensor.to(device)
                     
                     br_target_tensor = br_target_batch.atmos_vars[atmos_var].squeeze()[0,c,:,:]
-                    br_target_tensor = br_target_tensor.to("cuda")
+                    br_target_tensor = br_target_tensor.to(device)
                     
                     third_target_tensor = third_target_batch.atmos_vars[atmos_var].squeeze()[0,c,:,:]
-                    third_target_tensor = third_target_tensor.to("cuda")
+                    third_target_tensor = third_target_tensor.to(device)
                     
                     
                     #Atmospheric rms
@@ -303,13 +304,19 @@ def evaluation_between_regions(
         if not counter%10:
             logger.info(f"Iteration {counter} done")
     logger.info("Evaluation completed")
+    tr_surface_rmses = {var:values/counter_tr for var, values in tr_surface_rmses.items()}
+    tr_atmospheric_rmses = {var:values/counter_tr for var, values in tr_atmospheric_rmses.items()}
+    br_surface_rmses = {var:values/counter_br for var, values in br_surface_rmses.items()}
+    br_atmospheric_rmses = {var:values/counter_br for var, values in br_atmospheric_rmses.items()}
+    third_surface_rmses = {var:values/counter_third for var, values in third_surface_rmses.items()}
+    third_atmospheric_rmses = {var:values/counter_third for var, values in third_atmospheric_rmses.items()}
     
     return {
         'counter': counter,
-        'target_region_surface_rmses': tr_surface_rmses/counter_tr,
-        'target_region_atmospheric_rmses': tr_atmospheric_rmses/counter_tr,
-        'base_region_surface_rmses': br_surface_rmses/counter_br,
-        'base_region_atmospheric_rmses': br_atmospheric_rmses/counter_br,
-        'third_region_surface_rmses': third_surface_rmses/counter_third,
-        'third_region_atmospheric_rmses': third_atmospheric_rmses/counter_third
+        'target_region_surface_rmses': tr_surface_rmses,
+        'target_region_atmospheric_rmses': tr_atmospheric_rmses,
+        'base_region_surface_rmses': br_surface_rmses,
+        'base_region_atmospheric_rmses': br_atmospheric_rmses,
+        'third_region_surface_rmses': third_surface_rmses,
+        'third_region_atmospheric_rmses': third_atmospheric_rmses
     }

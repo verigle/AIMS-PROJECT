@@ -19,7 +19,7 @@ from utils import (
 )
 
 # Configure logging
-log_file = "training_on_hrest0_wampln_deterministic_backbone.log"
+log_file = "training_on_hrest0_wampln.log"
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 def training(model, criterion, num_epochs, optimizer, 
              era5_data=None, hres_data=None,
              dataset_name="HRES", accumulation_steps=32, lr_scheduler=None,
-             rollouts_num=8, checkpoint_dir='../model/training/hrest0/backbone'):
+             rollouts_num=8, checkpoint_dir='../model/training/hrest0/wampln', device="cuda"):
     
     torch.autograd.set_detect_anomaly(True)  # Enable anomaly detection
     
@@ -39,7 +39,6 @@ def training(model, criterion, num_epochs, optimizer,
     loss_list = []
 
     os.makedirs(checkpoint_dir, exist_ok=True)  # Ensure checkpoint directory exists
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)  # Move model to GPU if available
 
     # model.configure_activation_checkpointing()
@@ -69,7 +68,7 @@ def training(model, criterion, num_epochs, optimizer,
             target_batch = create_hrest0_batch(sa_target_surface_data, sa_target_atmos_data, sa_target_static_data).to(device)
 
             # Forward pass
-            outputs = predict_train_fn(model=model, batch=input_batch)
+            outputs = predict_train_fn(model=model, batch=input_batch, device=device)
             prediction_48h = outputs[-1]
 
             # Compute loss and accumulate

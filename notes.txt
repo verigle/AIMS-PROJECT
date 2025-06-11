@@ -1,0 +1,35 @@
+1. retrained the first wampln on 2021
+
+2. start training deterministic backbone only on 2020
+
+3. Run the rmse plot on the three  region for Aurora Small pretrained
+
+4. run the same thing but for appendix the remaining atmospheric variables
+
+5. run rmse grid for fine tuned model
+
+6. run the same thing but for appendix the remaining atmospheric variables (fine tuned model)
+
+7. scorecard evaluation_run_wampln_smalftvs_pretrained_sa
+
+8. scorecard fine-tuned model vs big pretrained model still for wampln
+
+
+
+9. scorecard small backbone finetuned vs small pretrained model
+
+10. scorecard small backbone finetuned vs big pretrained model
+
+#--------------------------------------------------------------------------
+
+1. scorecard evaluation_run_wampln_smalftvs_pretrained_sa
+2. scorecard fine-tuned model vs big pretrained model still for wampln
+
+3- un rmse grid for fine tuned model wampln not appendix
+4- un rmse grid for fine tuned model wampln for appendix
+
+5- Train backbone on 2021
+
+
+
+wampln epoch 8 is not bad

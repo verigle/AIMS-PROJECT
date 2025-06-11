@@ -9,7 +9,7 @@ from datetime import datetime
 
 import torch
 
-from aurora import AuroraSmall, Batch, Metadata, rollout,  Aurora
+from aurora import AuroraSmall, Batch, Metadata, rollout
 import matplotlib.pyplot as plt
 
 from pathlib import Path
@@ -90,27 +90,27 @@ sliced_hrest0_sa = full_hrest0.sel(time=slice(start_time, end_time),
                                    longitude=slice(lon_min, lon_max))
 
 
-model_initial = Aurora(
-    use_lora=False,  # Model was not fine-tuned.
-
+model_initial = AuroraSmall(
+    use_lora=False,  # fine_tuned_Model was not fine-tuned.
 )
 
-model_initial.load_state_dict(torch.load('../model/aurora-0.25-pretrained_big.pth'))
-
+model_initial.load_state_dict(torch.load('../model/urora-0.25-small-pretrained1.pth'))
 
 
 fine_tuned_model = AuroraSmall(
     use_lora=False,  
 )
-fine_tuned_model = full_linear_layer_lora(fine_tuned_model, lora_r = 16, lora_alpha = 4)
-checkpoint = torch.load('../model/training/hrest0/wampln/checkpoint_epoch_4.pth')
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+fine_tuned_model = create_custom_model(fine_tuned_model, lora_r = 16, lora_alpha = 2)
+checkpoint = torch.load('../model/training/hrest0/backbone/checkpoint_epoch_8.pth', map_location=device)
 
 fine_tuned_model.load_state_dict(checkpoint['model_state_dict'])
 
-# In[82]:
 
 
-results = evaluation(fine_tuned_model, model_initial, sliced_era5_SA, sliced_hrest0_sa)
+results = evaluation(fine_tuned_model, model_initial, sliced_era5_SA, sliced_hrest0_sa, device=device)
+
 
 
 # In[83]:
@@ -156,7 +156,7 @@ atmospheric_variables_names = ["Geopotential", "Specific humidity", "Temperature
 # num_surface = len(surface_rmses_fine_tuned)
 n_cols = 5
 
-save_path = "../report/evaluation/big_modelvs_finetuned_model"
+save_path = "../report/evaluation/backbone"
 
 
 
@@ -237,8 +237,6 @@ cbar.ax.tick_params(labelsize=tick_fontsize)
 
 # Final layout and saving
 plt.tight_layout(rect=[0, 0, 0.9, 1])
-plt.savefig(f"{save_path}/scorecard_wamp.pdf", bbox_inches="tight")
-plt.savefig(f"{save_path}/scorecard_wamp.png", bbox_inches="tight")
-plt.savefig(f"{save_path}/scorecard_wamp.svg", bbox_inches="tight")
-
-plt.show()
+plt.savefig(f"{save_path}/scorecard_backbone.pdf", bbox_inches="tight")
+plt.savefig(f"{save_path}/scorecard_backbone.png", bbox_inches="tight")
+plt.savefig(f"{save_path}/scorecard_backbone.svg", bbox_inches="tight")

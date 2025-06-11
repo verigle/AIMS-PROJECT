@@ -109,16 +109,18 @@ def create_batch(surf_vars_ds, atmos_vars_ds, static_vars_ds, i=1, target=True):
 ####################################################################################################################""
 
 
-def predict_fn(model=None, batch=None, rollout_nums=2):
+def predict_fn(model=None, batch=None, rollout_nums=2, device=None):
+    model = model.to(device)
     model.eval()
-    model = model.to("cuda")
+    
     # batch = batch.to("cuda")
     with torch.inference_mode():
         preds = [pred for pred in rollout(model, batch, steps=rollout_nums)]
     return preds
 
-def predict_train_fn(model=None, batch=None, rollout_nums=8):
-    model = model.to("cuda")
+def predict_train_fn(model=None, batch=None, rollout_nums=8, device="cuda"):
+    model = model.to(device)
+    model.train()
     preds = [pred for pred in rollout(model, batch, steps=rollout_nums)]
     return preds
 

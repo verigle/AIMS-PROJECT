@@ -90,27 +90,29 @@ sliced_hrest0_sa = full_hrest0.sel(time=slice(start_time, end_time),
                                    longitude=slice(lon_min, lon_max))
 
 
-model_initial = Aurora(
+big_model = Aurora(
     use_lora=False,  # Model was not fine-tuned.
 
 )
 
-model_initial.load_state_dict(torch.load('../model/aurora-0.25-pretrained_big.pth'))
+big_model.load_state_dict(torch.load('../model/aurora-0.25-pretrained_big.pth'))
 
 
 
 fine_tuned_model = AuroraSmall(
-    use_lora=False,  
+    use_lora=False,  # fine_tuned_Model was not fine-tuned.
 )
 fine_tuned_model = full_linear_layer_lora(fine_tuned_model, lora_r = 16, lora_alpha = 4)
-checkpoint = torch.load('../model/training/hrest0/wampln/checkpoint_epoch_4.pth')
+checkpoint = torch.load('../model/training/hrest0/wampln/checkpoint_epoch_3.pth')
 
 fine_tuned_model.load_state_dict(checkpoint['model_state_dict'])
 
+
 # In[82]:
+device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
 
 
-results = evaluation(fine_tuned_model, model_initial, sliced_era5_SA, sliced_hrest0_sa)
+results = evaluation(fine_tuned_model, big_model, sliced_era5_SA, sliced_hrest0_sa, device=device)
 
 
 # In[83]:
@@ -168,7 +170,7 @@ all_values = np.concatenate(
     [relative_surface_rmses[var].flatten() for var in surface_rmses_fine_tuned]
 )
 vmin, vmax = np.min(all_values), np.max(all_values)
-abs_max = 50
+abs_max = max(abs(vmin), abs(vmax))
 # Create a norm centered at 0
 norm = TwoSlopeNorm(vmin=-abs_max, vcenter=0, vmax=abs_max)
 
@@ -237,8 +239,6 @@ cbar.ax.tick_params(labelsize=tick_fontsize)
 
 # Final layout and saving
 plt.tight_layout(rect=[0, 0, 0.9, 1])
-plt.savefig(f"{save_path}/scorecard_wamp.pdf", bbox_inches="tight")
-plt.savefig(f"{save_path}/scorecard_wamp.png", bbox_inches="tight")
-plt.savefig(f"{save_path}/scorecard_wamp.svg", bbox_inches="tight")
-
-plt.show()
+plt.savefig(f"{save_path}/scorecard_wampln.pdf", bbox_inches="tight")
+plt.savefig(f"{save_path}/scorecard_wampln.png", bbox_inches="tight")
+plt.savefig(f"{save_path}/scorecard_wampln.svg", bbox_inches="tight")

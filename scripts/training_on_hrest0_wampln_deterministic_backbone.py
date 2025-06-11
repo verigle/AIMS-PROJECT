@@ -44,7 +44,7 @@ os.environ['CUBLAS_WORKSPACE_CONFIG'] = ':4096:8'
 model = AuroraSmall(
     use_lora=False,  # Model was not fine-tuned.
 )
-model.load_state_dict(torch.load('../model/urora-0.25-small-pretrained1.pth'))
+# model.load_state_dict(torch.load('../model/urora-0.25-small-pretrained1.pth'))
 
 # # model = AuroraSmall()
 # # model = AuroraSmall(
@@ -52,8 +52,12 @@ model.load_state_dict(torch.load('../model/urora-0.25-small-pretrained1.pth'))
 # #     autocast=True,  # Use AMP.
 # #     stabilise_level_agg=True
 # # )
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+
 model = create_custom_model(model, lora_r = 16, lora_alpha = 2)
-# checkpoint = torch.load('../model/training/hrest0/wampln/checkpoint_epoch_7.pth')
+checkpoint = torch.load('../model/training/hrest0/backbone2/checkpoint_epoch_7.pth', map_location=device)
 
 # model.load_state_dict(checkpoint['model_state_dict'])
 
@@ -73,7 +77,7 @@ full_era5 = xr.open_zarr(store=store, consolidated=True, chunks=None)
 
 
 # start_time, end_time = '2022-11-01', '2023-01-31'
-start_time, end_time = '2020-01-01', '2020-12-31' #'2021-12-31'
+start_time, end_time = '2021-01-01', '2021-12-31' #'2021-12-31'
 # start_time, end_time = '2023-01-08', '2023-01-31'
 
 
@@ -101,7 +105,7 @@ sliced_hrest0_sa = full_hrest0.sel(time=slice(start_time, end_time),
 
 
 optimizer = optim.Adam(model.parameters(), lr=1e-4)
-scheduler = lr_scheduler.StepLR(optimizer, step_size=1, gamma=0.1)
+scheduler = lr_scheduler.StepLR(optimizer, step_size=1, gamma=0.9)
 
 
 criterion = AuroraLoss()
@@ -114,7 +118,7 @@ model,  maps = training(model=model, criterion=criterion,
              era5_data=sliced_era5_SA, 
              hres_data=sliced_hrest0_sa,
              dataset_name="OTHER", lr_scheduler=scheduler,
-             accumulation_steps=8)
+             accumulation_steps=8, device=device)
 
 
 torch.save(model.state_dict(), "..model/training/hrest0/model7/best_hres_model.pth")

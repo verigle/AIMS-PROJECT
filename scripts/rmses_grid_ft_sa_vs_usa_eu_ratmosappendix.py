@@ -86,22 +86,19 @@ sliced_era5 = (
 store_hrest0 = fs.get_mapper('gs://weatherbench2/datasets/hres_t0/2016-2022-6h-1440x721.zarr')
 full_hrest0 = xr.open_zarr(store=store_hrest0, consolidated=True, chunks=None)
 sliced_hrest0 = full_hrest0.sel(time=slice(start_time, end_time))
-#------------------------------1--------------------------------------
+
 model = AuroraSmall(
     use_lora=False,  # fine_tuned_Model was not fine-tuned.
 )
 
-model.load_state_dict(torch.load('../model/urora-0.25-small-pretrained1.pth'))
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
-#-----------------------------2----------------------------------------
-# model = AuroraSmall(
-#     use_lora=False,  # fine_tuned_Model was not fine-tuned.
-# )
-# model = full_linear_layer_lora(model, lora_r = 16, lora_alpha = 4)
-# checkpoint = torch.load('../model/training/hrest0/wampln/checkpoint_epoch_4.pth')
+model = full_linear_layer_lora(model, lora_r = 16, lora_alpha = 4)
+checkpoint = torch.load('../model/training/hrest0/wampln/checkpoint_epoch_3.pth', map_location=device)
 
-# model.load_state_dict(checkpoint['model_state_dict'])
+model.load_state_dict(checkpoint['model_state_dict'])
+
 
 
 USA_REGION = (
@@ -125,6 +122,8 @@ EU_REGION = (
          39.9  # Eastern boundary (approximate)
 )
 
+
+
 results = evaluation_between_regions(
                         model,
                         era5_data=sliced_era5, 
@@ -132,6 +131,7 @@ results = evaluation_between_regions(
                         target_region=SA_REGION,
                         base_region= USA_REGION,
                         third_region= EU_REGION,
+                        device=device
                )
 
 
@@ -145,75 +145,82 @@ base_region_surface_rmses = results['base_region_surface_rmses']
 base_region_atmospheric_rmses = results['base_region_atmospheric_rmses']
 
 
+
 lead_time = [6, 12, 18, 24, 30, 36, 42, 48]
+SELECTED_ATMOS_LEVELS1 = {1:"100 hPa", 2:"150 hPa", 3: "200 hPa", 
+                         4:"250 hPa", 5:"300 hPa"}
+SELECTED_ATMOS_LEVELS2 = {6:"400 hPa",8: "600 hPa", 9: "700 hPa", 10:"850 hPa", 11: "925 hPa"}
 
-SELECTED_ATMOS_LEVELS = {0:"50 hPa", 7:"500 hPa", 12:"1000 hPa"}
 
-target_region_surface_atmos_rmses=target_region_surface_rmses.copy()
-base_region_surface_atmos_rmses=base_region_surface_rmses.copy()
-eu_region_surface_atmos_rmses=eu_region_surface_rmses.copy()
 
-for num, name in SELECTED_ATMOS_LEVELS.items():
-    for var, rmses in target_region_atmospheric_rmses.items():
-        target_region_surface_atmos_rmses[f"{var} {name}"] = target_region_atmospheric_rmses[var][num]
+def plot(SELECTED_ATMOS_LEVELS, level=1):
+    target_region_surface_atmos_rmses={}
+    base_region_surface_atmos_rmses={}
+    eu_region_surface_atmos_rmses={}
+
+    for num, name in SELECTED_ATMOS_LEVELS.items():
+        for var, rmses in target_region_atmospheric_rmses.items():
+            target_region_surface_atmos_rmses[f"{var} {name}"] = target_region_atmospheric_rmses[var][num]
+            
         
-    
-for num, name in SELECTED_ATMOS_LEVELS.items():
-    for var, rmses in base_region_atmospheric_rmses.items():
-        base_region_surface_atmos_rmses[f"{var} {name}"] = base_region_atmospheric_rmses[var][num]
+    for num, name in SELECTED_ATMOS_LEVELS.items():
+        for var, rmses in base_region_atmospheric_rmses.items():
+            base_region_surface_atmos_rmses[f"{var} {name}"] = base_region_atmospheric_rmses[var][num]
+            
+
+
+    for num, name in SELECTED_ATMOS_LEVELS.items():
+        for var, rmses in eu_region_atmospheric_rmses.items():
+            eu_region_surface_atmos_rmses[f"{var} {name}"] = eu_region_atmospheric_rmses[var][num]
+            
         
+            
+    num_plots = len(target_region_surface_atmos_rmses)
+
+    num_plots = len(target_region_surface_atmos_rmses)
+    num_plots_per_rows = 5
+    num_rows = int(np.ceil(num_plots/num_plots_per_rows)) ##  to check
+    variables = list(target_region_surface_atmos_rmses.keys())
 
 
-for num, name in SELECTED_ATMOS_LEVELS.items():
-    for var, rmses in eu_region_atmospheric_rmses.items():
-        eu_region_surface_atmos_rmses[f"{var} {name}"] = eu_region_atmospheric_rmses[var][num]
+
+
+
+
+    saving_path = "../report/evaluation/rmses_grid/fine_tuned_small"
+
+    fig, axs = plt.subplots(num_rows, num_plots_per_rows, dpi=300, figsize=(20, 20))
+    axs = axs.ravel()
+
+    # Store handles and labels from the first plot for global legend
+    handles, labels = None, None
+
+    for i, ax in enumerate(axs[:num_plots]):
+        line1, = ax.plot(lead_time, target_region_surface_atmos_rmses[variables[i]], label="South Africa", c="brown")
+        line3, = ax.plot(lead_time, eu_region_surface_atmos_rmses[variables[i]], label="Europe", c="navy")
         
-    
-        
-num_plots = len(target_region_surface_atmos_rmses)
+        line2, = ax.plot(lead_time, base_region_surface_atmos_rmses[variables[i]], label="USA", c="teal")
+        ax.set_title(variables[i])
+        ax.grid(True)
+        if i == 0:
+            handles, labels = ax.get_legend_handles_labels()
 
-num_plots = len(target_region_surface_atmos_rmses)
-num_plots_per_rows = 4
-num_rows = num_plots//num_plots_per_rows+1
-variables = list(target_region_surface_atmos_rmses.keys())
+    # Turn off unused axes
+    for ax in axs[num_plots:]:
+        ax.axis('off')
 
+    # Add shared labels
+    fig.supxlabel("Lead Time (Hours)")
+    fig.supylabel("RMSE")
 
+    # Add a single global legend below x-axis label
+    fig.legend(handles, labels, loc='lower center', ncol=3, bbox_to_anchor=(0.5, -0.02), frameon=False)
 
-
-
-
-saving_path = "../report/evaluation/rmses_grid/pretrained_small"
-
-fig, axs = plt.subplots(num_rows, num_plots_per_rows, dpi=300, figsize=(15, 15))
-axs = axs.ravel()
-
-# Store handles and labels from the first plot for global legend
-handles, labels = None, None
-
-for i, ax in enumerate(axs[:num_plots]):
-    line1, = ax.plot(lead_time, target_region_surface_atmos_rmses[variables[i]], label="South Africa", c="brown")
-    line3, = ax.plot(lead_time, eu_region_surface_atmos_rmses[variables[i]], label="Europe", c="navy")
-    line2, = ax.plot(lead_time, base_region_surface_atmos_rmses[variables[i]], label="USA", c="teal")
-    ax.set_title(variables[i])
-    ax.grid(True)
-    if i == 0:
-        handles, labels = ax.get_legend_handles_labels()
-        print(handles, labels)
-# Turn off unused axes
-for ax in axs[num_plots:]:
-    ax.axis('off')
-
-# Add shared labels
-fig.supxlabel("Lead Time (Hours)")
-fig.supylabel("RMSE")
-
-# Add a single global legend below x-axis label
-fig.legend(handles, labels, loc='lower center', ncol=3, bbox_to_anchor=(0.5, -0.02), frameon=False)
-
-plt.tight_layout(pad=1.3)
-plt.savefig(f"{saving_path}/sa_vs_usa_vs_eu.pdf", bbox_inches="tight")
-plt.savefig(f"{saving_path}/sa_vs_usa_vs_eu.png", bbox_inches="tight")
-plt.savefig(f"{saving_path}/sa_vs_usa_vs_eu.svg", bbox_inches="tight")
+    plt.tight_layout(pad=1.3)
+    plt.savefig(f"{saving_path}/sa_vs_usa_vs_eu_wampln_sup_atmos{level}.pdf", bbox_inches="tight")
+    plt.savefig(f"{saving_path}/sa_vs_usa_vs_eu_wampln_sup_atmos{level}.png", bbox_inches="tight")
+    plt.savefig(f"{saving_path}/sa_vs_usa_vs_eu_wampln_sup_atmos{level}.svg", bbox_inches="tight")
 
 
-
+plot(SELECTED_ATMOS_LEVELS1, level=1)
+plot(SELECTED_ATMOS_LEVELS2, level=2)

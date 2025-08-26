@@ -26,6 +26,13 @@ This project is about getying accurate weather forecast with minimal cost using 
 ```bash
 git clone https://github.com/koomited/AIMS-PROJECT
 ```
+## Create a virtual environment and activate it
+
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
+
 
 ## Install the requirements
 
@@ -44,11 +51,12 @@ To run the code in this project a linux environment particulary ubuntu is requir
 ## Cross-region check of the model perfomance: South Africa, Europe, USA
 In case you are interested in checking the model care about performance over different regions, you can start with
 
-[`scripts/rmses_grid_sp_sa_vs_usa_eu.py`](scripts/rmses_grid_sp_sa_vs_usa_eu.py) where we did for the regions above. You can change those regions in the scripts if you want and run it with the code below.
+[`scripts/rmses_grid_sp_sa_vs_usa_eu.py`](scripts/rmses_grid_sp_sa_vs_usa_eu.py) where we did for the regions above. You can change those regions in the scripts if you want and run it with the code below. You can also change the model you are interested in.
 
 ```bash
 nohup python rmses_grid_sp_sa_vs_usa_eu.py > rmses_grid_sp_sa_vs_usa_eu.log 2>&1 &
 ```
+The log files keep track of the progress. You can open and check.
 You can find the plots in [`report/evaluation/rmses_grid/pretrained_small`](report/evaluation/rmses_grid/pretrained_small).
 ## Training
 
@@ -80,18 +88,19 @@ Make sure you are in the folde [`scripts`](scripts) in the terminal and use the 
 nohup python training_on_hrest0_wampln.py > training_on_hrest0_wampln.log 2>&1 &
 ```
 
-
-
-
-
-
-
-
-
-
+## Evaluation
+Here we create scorecard where we can compare two different models over South Africa. Example:
+### Fine tuned small model against pretrained small models
 ```bash
-source venv/bin/activate
+nohup python evaluation_run_wampln_smalftvs_pretrained_sa.py > evaluation_run_wampln_smalftvs_pretrained_sa.log 2>&1 &
 ```
+The plots are saved in [`report/evaluation/wampln`](report/evaluation/wampln).
+
+Similary to the perfromance check accross regions using the pretrained model, you can the same thing for your fin tuned models. You can find an example in [`scripts/rmses_grid_ft_sa_vs_usa_eu.py`](scripts/rmses_grid_ft_sa_vs_usa_eu.py). You ran this script exactely the same way we did and you can check where you plots are save yourself b y looking at the saving path in the file oor just ckeck the [`report/evaluation/rmses_grid/fine_tuned_small`](report/evaluation/rmses_grid/fine_tuned_small).
+
+
+
+
 
 
 ### STEP 02- install the requirements

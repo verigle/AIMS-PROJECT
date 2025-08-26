@@ -103,13 +103,13 @@ fine_tuned_model = AuroraSmall(
     use_lora=False,  # fine_tuned_Model was not fine-tuned.
 )
 fine_tuned_model = full_linear_layer_lora(fine_tuned_model, lora_r = 16, lora_alpha = 4)
-checkpoint = torch.load('../model/training/hrest0/wampln/checkpoint_epoch_3.pth')
+checkpoint = torch.load('../model/training/hrest0/wampln/checkpoint_epoch_10.pth')
 
 fine_tuned_model.load_state_dict(checkpoint['model_state_dict'])
 
 
 # In[82]:
-device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
 results = evaluation(fine_tuned_model, big_model, sliced_era5_SA, sliced_hrest0_sa, device=device)
@@ -170,7 +170,7 @@ all_values = np.concatenate(
     [relative_surface_rmses[var].flatten() for var in surface_rmses_fine_tuned]
 )
 vmin, vmax = np.min(all_values), np.max(all_values)
-abs_max = max(abs(vmin), abs(vmax))
+abs_max = 60 #max(abs(vmin), abs(vmax))
 # Create a norm centered at 0
 norm = TwoSlopeNorm(vmin=-abs_max, vcenter=0, vmax=abs_max)
 

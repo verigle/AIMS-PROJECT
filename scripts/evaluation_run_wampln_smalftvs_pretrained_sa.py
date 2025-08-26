@@ -96,14 +96,14 @@ model_initial = AuroraSmall(
 
 model_initial.load_state_dict(torch.load('../model/urora-0.25-small-pretrained1.pth'))
 
-
 fine_tuned_model = AuroraSmall(
     use_lora=False,  # fine_tuned_Model was not fine-tuned.
 )
 fine_tuned_model = full_linear_layer_lora(fine_tuned_model, lora_r = 16, lora_alpha = 4)
-checkpoint = torch.load('../model/training/hrest0/wampln/checkpoint_epoch_4.pth')
+checkpoint = torch.load('../model/training/hrest0/wampln/checkpoint_epoch_13.pth')
 
 fine_tuned_model.load_state_dict(checkpoint['model_state_dict'])
+print("Loading fine_tuned_Model from checkpoint")
 
 
 # In[82]:
@@ -167,7 +167,7 @@ all_values = np.concatenate(
     [relative_surface_rmses[var].flatten() for var in surface_rmses_fine_tuned]
 )
 vmin, vmax = np.min(all_values), np.max(all_values)
-abs_max = max(abs(vmin), abs(vmax))
+abs_max = 60#max(abs(vmin), abs(vmax))
 # Create a norm centered at 0
 norm = TwoSlopeNorm(vmin=-abs_max, vcenter=0, vmax=abs_max)
 

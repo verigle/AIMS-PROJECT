@@ -48,7 +48,8 @@ model = AuroraSmall(
 #     stabilise_level_agg=True
 # )
 model = full_linear_layer_lora(model, lora_r = 16, lora_alpha = 4)
-checkpoint = torch.load('../model/training/hrest0/wampln/checkpoint_epoch_7.pth')
+checkpoint = torch.load('../model/training/hrest0/wampln/checkpoint_epoch_13.pth')
+print("Loading model from checkpoint")
 
 model.load_state_dict(checkpoint['model_state_dict'])
 
@@ -68,7 +69,7 @@ full_era5 = xr.open_zarr(store=store, consolidated=True, chunks=None)
 
 
 # start_time, end_time = '2022-11-01', '2023-01-31'
-start_time, end_time = '2021-01-01', '2021-12-31' #'2021-12-31'
+start_time, end_time = '2019-01-01', '2021-12-31' #'2021-12-31'
 # start_time, end_time = '2023-01-08', '2023-01-31'
 
 
@@ -96,7 +97,7 @@ sliced_hrest0_sa = full_hrest0.sel(time=slice(start_time, end_time),
 
 
 optimizer = optim.Adam(model.parameters(), lr=1e-4)
-scheduler = lr_scheduler.StepLR(optimizer, step_size=1, gamma=0.9)
+scheduler = lr_scheduler.StepLR(optimizer, step_size=1, gamma=0.95)
 
 
 criterion = AuroraLoss()

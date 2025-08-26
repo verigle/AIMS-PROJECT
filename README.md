@@ -21,19 +21,73 @@ This project is about getying accurate weather forecast with minimal cost using 
 
 
 # How to run?
-### STEPS:
-
-
-Clone the repository
+## lone the repository
 
 ```bash
-https://github.com/koomited/cowrywise-customer-plan-abandonment.git
+git clone https://github.com/koomited/AIMS-PROJECT
 ```
-### STEP 01- Create a conda environment after opening the repository
+
+## Install the requirements
 
 ```bash
-python3 -m venv venv
+pip install -r requirements.txt
 ```
+Make sure you download the checkpoint of the pretrained models you need, not the fine tuned one if you want to train, first from Hugging Face and save them in a folder named `model` in your root directory.
+You can explore how to do that with this notebook [`notebooks/model_surgery.ipynb`](notebooks/model_surgery.ipynb)
+Note that we download the ones we need, the small and large 0.25° resolution models. You can donwload other version of the model from [Huggin Face](https://huggingface.co/microsoft/aurora/tree/main)
+
+
+
+
+To run the code in this project a linux environment particulary ubuntu is required. Also notice that we build the whole project on Google Gloud Plateform (GCP). Therefore you may need to check out the correspondence of some codes if you are running the code on your local machine.
+
+## Cross-region check of the model perfomance: South Africa, Europe, USA
+In case you are interested in checking the model care about performance over different regions, you can start with
+
+[`scripts/rmses_grid_sp_sa_vs_usa_eu.py`](scripts/rmses_grid_sp_sa_vs_usa_eu.py) where we did for the regions above. You can change those regions in the scripts if you want and run it with the code below.
+
+```bash
+nohup python rmses_grid_sp_sa_vs_usa_eu.py > rmses_grid_sp_sa_vs_usa_eu.log 2>&1 &
+```
+You can find the plots in [`report/evaluation/rmses_grid/pretrained_small`](report/evaluation/rmses_grid/pretrained_small).
+## Training
+
+The main code for training can be found in  [`scripts/training_on_hrest0_wampln.py`](scripts/training_on_hrest0_wampln.py).
+
+To run it, you need to pay attention to some few things:
+- Make sure you change the code on the line 72 to the timeframe you want to train on. Remember that we are training on HREST TO dataset and don't exide its time frame. 
+
+```python
+start_time, end_time = '2019-01-01', '2021-12-31' 
+```
+
+Also remember we are training the small version of the model. In case you want to change this, you can do it from line 39 to 54
+```python
+model = AuroraSmall(
+    use_lora=False,  .
+)
+
+model = full_linear_layer_lora(model, lora_r = 16, lora_alpha = 4)
+checkpoint = torch.load('../model/training/hrest0/wampln/checkpoint_epoch_13.pth')
+
+model.load_state_dict(checkpoint['model_state_dict'])
+```
+Because of the computational demand of the traning, we save each the checkpoint of each epoch in this folder [`model/training/hrest0/wampln`](model/training/hrest0/wampln). You can also resume training from any checkpoint by changing the python code just above.
+
+Make sure you are in the folde [`scripts`](scripts) in the terminal and use the following command to start the training.
+
+```bash
+nohup python training_on_hrest0_wampln.py > training_on_hrest0_wampln.log 2>&1 &
+```
+
+
+
+
+
+
+
+
+
 
 ```bash
 source venv/bin/activate

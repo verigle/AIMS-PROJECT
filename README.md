@@ -1,5 +1,6 @@
-# AI For Science Master project 
+# AMy Paper Title
 ---
+This repository is the official implementation of Towards Affordable Weather Forecasting in South Africa: Parameter-Efficient Fine-Tuning of an AI Weather Foundation Model.
 
 [![Linux](https://img.shields.io/badge/Linux-FCC624?logo=linux&logoColor=black)](#)
 [![Visual Studio Code](https://img.shields.io/badge/Visual%20Studio%20Code-0078d7.svg?logo=visual-studio-code&logoColor=white)](#)
@@ -49,6 +50,7 @@ source venv/bin/activate
 ```bash
 pip install -r requirements.txt
 ```
+## Pretrained models
 Make sure you download the checkpoint of the pretrained models you need, not the fine tuned one if you want to train, first from Hugging Face and save them in a folder named `model` in your root directory.
 You can explore how to do that with this notebook [`notebooks/model_surgery.ipynb`](notebooks/model_surgery.ipynb)
 Note that we download the ones we need, the small and large 0.25° resolution models. You can donwload other version of the model from [Huggin Face](https://huggingface.co/microsoft/aurora/tree/main)
@@ -116,7 +118,3 @@ Similary to the perfromance check accross regions using the pretrained model, yo
 - Investigate other fine-tuning techniques
 
 ---
-
-👨‍💻 Crafted with ❤️ by **Koomi Toussaint AMOUSSOUVI**
-
-📫 Reach out to me on [LinkedIn](https://www.linkedin.com/in/koomi-toussaint-amoussouvi-87b923201/) 

@@ -119,4 +119,4 @@ Similary to the perfromance check accross regions using the pretrained model, yo
 
 👨‍💻 Crafted with ❤️ by **Koomi Toussaint AMOUSSOUVI**
 
-📫 Reach me onnvid [LinkedIn](https://www.linkedin.com/in/koomi-toussaint-amoussouvi-87b923201/) 
+📫 Reach out to me on [LinkedIn](https://www.linkedin.com/in/koomi-toussaint-amoussouvi-87b923201/) 

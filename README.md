@@ -17,7 +17,17 @@
 
 # Overview
 
-This project is about getying accurate weather forecast with minimal cost using PEFT techniques like LoRA, to improve an AI Weather Foundation Model, here Microsoft-Aurora.
+Accurate weather forecasts are critical for climate resilience, but traditional numerical weather prediction (NWP) systems are too costly and resource-intensive for many African regions. AI weather prediction (AIWP) models offer a faster and more affordable alternative, but they usually struggle in Africa due to limited meteorological infrastructure and scarce local data.
+
+This project explores fine-tuning a pretrained AI foundation model (Aurora) on South African weather data. By adapting state-of-the-art models to regional conditions, we aim to deliver affordable, locally adapted forecasts that can support communities, researchers, and policymakers across the continent.
+
+Key goals:
+
+- Make weather forecasting more accessible in low-resource settings
+
+- Improve predictive accuracy in Africa through regional fine-tuning
+
+- Contribute to climate resilience with AI-driven solutions
 
 
 # How to run?
@@ -109,4 +119,4 @@ Similary to the perfromance check accross regions using the pretrained model, yo
 
 👨‍💻 Crafted with ❤️ by **Koomi Toussaint AMOUSSOUVI**
 
-📫 Reach me on [LinkedIn](https://www.linkedin.com/in/koomi-toussaint-amoussouvi-87b923201/) 
+📫 Reach me onnvid [LinkedIn](https://www.linkedin.com/in/koomi-toussaint-amoussouvi-87b923201/) 

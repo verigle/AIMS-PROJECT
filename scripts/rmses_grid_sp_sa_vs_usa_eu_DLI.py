@@ -200,16 +200,13 @@ base_region_atmos_rmses["Southward wind speed at 850hPa"] = base_region_atmosphe
 
 
     
-        
-# --- Global font settings ---
-plt.rcParams.update({
-    "font.size": 14,          # Base font size
-    "axes.titlesize": 18,     # Subplot titles
-    "axes.labelsize": 18,     # Axis labels
-    "xtick.labelsize": 14,    # X tick labels
-    "ytick.labelsize": 14,    # Y tick labels
-    "legend.fontsize": 15     # Legend font size
-})
+ # --- Global font settings ---
+plt.rcParams.update({'font.size': 22})
+
+# Define custom font sizes
+label_fontsize = 22
+tick_fontsize = 20
+title_fontsize = 24.5
 
 # --- Data setup ---
 num_plots = len(target_region_atmos_rmses)
@@ -220,7 +217,7 @@ variables = list(target_region_atmos_rmses.keys())
 saving_path = "../report/evaluation/rmses_grid/pretrained_small/DLI"
 
 # --- Figure and subplots ---
-fig, axs = plt.subplots(num_rows, num_plots_per_rows, dpi=300, figsize=(25, 5))
+fig, axs = plt.subplots(num_rows, num_plots_per_rows, dpi=300, figsize=(40, 8))
 axs = axs.ravel()
 
 # Store handles and labels from the first plot for global legend
@@ -232,7 +229,8 @@ for i, ax in enumerate(axs[:num_plots]):
     line2, = ax.plot(lead_time, base_region_atmos_rmses[variables[i]], label="USA", c="teal")
     line3, = ax.plot(lead_time, eu_region_atmos_rmses[variables[i]], label="Europe", c="navy")
     
-    ax.set_title(variables[i])
+    ax.set_title(variables[i], fontsize=title_fontsize+2)
+    ax.tick_params(axis='both', labelsize=tick_fontsize+2)
     ax.grid(True)
 
     # Capture legend handles/labels once
@@ -244,8 +242,8 @@ for ax in axs[num_plots:]:
     ax.axis('off')
 
 # --- Shared axis labels ---
-fig.supxlabel("Lead Time (Hours)", x=0.5, y=0.05, fontsize=18)
-fig.supylabel("RMSE", x=0.01, y=0.5, fontsize=18)
+fig.supxlabel("Lead Time (Hours)", x=0.5, y=0.05, fontsize=label_fontsize+4)
+fig.supylabel("RMSE", x=0.01, y=0.5, fontsize=label_fontsize)
 
 # --- Shared legend ---
 fig.legend(
@@ -254,7 +252,7 @@ fig.legend(
     ncol=3,
     bbox_to_anchor=(0.5, -0.07),  # Positioned below x-label
     frameon=False,
-    fontsize=20
+    fontsize=24
 )
 
 # --- Layout and saving ---

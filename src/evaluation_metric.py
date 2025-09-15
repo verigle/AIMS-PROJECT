@@ -19,7 +19,7 @@ def evaluation_rmse_weights(latitudes: torch.Tensor, device: str = "cuda") -> to
     weights = torch.cos(latitudes)
     weights = weights * len(latitudes) / torch.sum(weights)
     return weights
-
+X
 def evaluation_rmse(
     actual: torch.Tensor, 
     prediction: torch.Tensor, 

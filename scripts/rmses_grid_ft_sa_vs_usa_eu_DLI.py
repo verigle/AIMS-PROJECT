@@ -50,20 +50,6 @@ torch.use_deterministic_algorithms(True)
 os.environ['CUBLAS_WORKSPACE_CONFIG'] = ':4096:8'
 
 
-plt.style.use('default')
-plt.rcParams.update({
-    'font.family': 'serif',
-    'font.size': 12,
-    'axes.labelsize': 12,
-    'axes.titlesize': 15,
-    'xtick.labelsize': 12,
-    'ytick.labelsize': 12,
-    'axes.linewidth': 0.8,
-    'grid.linewidth': 1.2,
-    'lines.linewidth': 1.5,
-    'grid.alpha': 0.8,
-    'figure.dpi': 150,
-})
 
 
 fs = gcsfs.GCSFileSystem(token="anon")
@@ -91,7 +77,7 @@ model = AuroraSmall(
     use_lora=False,  # Model was not fine-tuned.
 )
 model = full_linear_layer_lora(model, lora_r = 16, lora_alpha = 4)
-checkpoint = torch.load('../model/training/hrest0/wampln/checkpoint_epoch_1.pth')
+checkpoint = torch.load('../model/training/hrest0/wampln/checkpoint_epoch_9.pth')
 print("Loading model from checkpoint")
 
 model.load_state_dict(checkpoint['model_state_dict'])
@@ -204,9 +190,28 @@ base_region_atmos_rmses["Southward wind speed at 850hPa"] = base_region_atmosphe
 
 
 
+# --- Global font settings ---
+plt.rcParams.update({
+    "font.family": "serif",
+    "font.size": 22,          # Base font size
+    "axes.titlesize": 24.5,   # Subplot titles
+    "axes.labelsize": 22,     # Axis labels
+    "xtick.labelsize": 20,    # X tick labels
+    "ytick.labelsize": 20,    # Y tick labels
+    "axes.linewidth": 0.8,
+    "grid.linewidth": 1.2,
+    "grid.alpha": 0.8,
+    "lines.linewidth": 1.5,
+    "figure.dpi": 300,
+    "legend.fontsize": 24     # Legend font size
+})
 
+# Define custom font sizes (optional fine-tuning)
+label_fontsize = 22
+tick_fontsize = 20
+title_fontsize = 24.5
 
-saving_path = "../report/evaluation/rmses_grid/pretrained_small/DLI"
+saving_path = "../report/evaluation/rmses_grid/fine_tuned_small/DLI"
 
 # --- Data setup ---
 num_plots = len(target_region_atmos_rmses)
@@ -214,14 +219,12 @@ num_plots_per_rows = 5
 num_rows = 1
 variables = list(target_region_atmos_rmses.keys())
 
-
 # --- Figure and subplots ---
-fig, axs = plt.subplots(num_rows, num_plots_per_rows, dpi=300, figsize=(25, 5))
+fig, axs = plt.subplots(num_rows, num_plots_per_rows, dpi=300, figsize=(40, 8))
 axs = axs.ravel()
 
 # Store handles and labels from the first plot for global legend
 handles, labels = None, None
-
 
 # --- Plot each variable ---
 for i, ax in enumerate(axs[:num_plots]):
@@ -229,7 +232,8 @@ for i, ax in enumerate(axs[:num_plots]):
     line2, = ax.plot(lead_time, base_region_atmos_rmses[variables[i]], label="USA", c="teal")
     line3, = ax.plot(lead_time, eu_region_atmos_rmses[variables[i]], label="Europe", c="navy")
     
-    ax.set_title(variables[i])
+    ax.set_title(variables[i], fontsize=title_fontsize+2)
+    ax.tick_params(axis='both', labelsize=tick_fontsize+2)
     ax.grid(True)
 
     # Capture legend handles/labels once
@@ -241,44 +245,22 @@ for ax in axs[num_plots:]:
     ax.axis('off')
 
 # --- Shared axis labels ---
-fig.supxlabel("Lead Time (Hours)", x=0.5, y=0.05, fontsize=18)
-fig.supylabel("RMSE", x=0.01, y=0.5, fontsize=18)
+fig.supxlabel("Lead Time (Hours)", x=0.5, y=0.05, fontsize=label_fontsize+4)
+fig.supylabel("RMSE", x=0.01, y=0.5, fontsize=label_fontsize)
 
-
+# --- Shared legend ---
 fig.legend(
     handles, labels,
     loc='lower center',
     ncol=3,
     bbox_to_anchor=(0.5, -0.07),  # Positioned below x-label
     frameon=False,
-    fontsize=20
+    fontsize=24
 )
 
-
-plt.tight_layout(rect=[0, 0.05, 1, 1])  # Adjust rect to make space for the legend
-# plt.subplots_adjust(wspace=0.3, hspace=0.3)
+# --- Layout and saving ---
+plt.tight_layout(rect=[0, 0.05, 1, 1])  
 plt.savefig(f"{saving_path}/ft_sa_vs_usa_vs_eu.pdf", bbox_inches="tight")
 plt.savefig(f"{saving_path}/ft_sa_vs_usa_vs_eu.png", bbox_inches="tight")
 plt.savefig(f"{saving_path}/ft_sa_vs_usa_vs_eu.svg", bbox_inches="tight")
-
-
-
-       
-# --- Global font settings ---
-plt.rcParams.update({
-    "font.size": 14,          # Base font size
-    "axes.titlesize": 18,     # Subplot titles
-    "axes.labelsize": 18,     # Axis labels
-    "xtick.labelsize": 14,    # X tick labels
-    "ytick.labelsize": 14,    # Y tick labels
-    "legend.fontsize": 15     # Legend font size
-})
-
-
-
-# --- Shared legend ---
-
-
-
-
-# %%
+plt.close()
